@@ -75,3 +75,4 @@ fabric.properties
 
 venv
 .idea
+notebooks/.ipynb_checkpoints/
