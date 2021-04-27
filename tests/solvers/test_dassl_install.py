@@ -2,7 +2,7 @@ from unittest import TestCase
 import dasslc
 import numpy as np
 
-class TestDasslc2py(TestCase):
+class TestDasslInstall(TestCase):
 
     def test_model0(self):
 

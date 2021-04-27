@@ -27,13 +27,16 @@ class FDMMixin:
             if N > L_grid - 1:
                 raise FDMError('Number of nodes is insufficient for the selected gradient order ')
 
-            weights = np.empty((L_grid, N + 1))
+            weights = np.empty((L, N + 1))
             inis = []
             finis = []
+            j=0
             for i in range(L_grid):
-                weights[i, :], ini, fini = weight_fcn(L_grid, i, x_grid)
-                inis.append(ini)
-                finis.append(fini)
+                if i in id_nodes:
+                    weights[j, :], ini, fini = weight_fcn(L_grid, i, x_grid)
+                    inis.append(ini)
+                    finis.append(fini)
+                    j += 1
 
             self.x = x
             self.L = L
@@ -61,12 +64,19 @@ class FDMMixin:
                 grid_f = f
 
             grads = np.empty_like(f)
-            j = 0
             for i, (c_i, ini, fini) in enumerate(zip(self.weights, self.inis, self.finis)):
-                if i in self.id_nodes:
-                    f_i = grid_f[ini:fini]
-                    grads[j] = sum(f_i[:] * c_i[:])
-                    j += 1
+                f_i = grid_f[ini:fini]
+
+                if self.flux_delimiter is not None:
+                    if i == 0:
+                        c_i = np.zeros_like(c_i)
+                        c_i[0] = -1/(self.x[2]-self.x[0])
+                        c_i[2] = 1/(self.x[2] - self.x[0])
+                    elif i == (self.L-1):
+                        c_i = np.zeros_like(c_i)
+                        c_i[0] = -1/(self.x[-1]-self.x[-3])
+                        c_i[2] = 1/(self.x[-1] - self.x[-3])
+                grads[i] = sum(f_i[:] * c_i[:])
 
             return grads
 
@@ -81,30 +91,27 @@ class FDMMixin:
 
         def hrs_grid(self, x):
             L = len(x)
-            new_x = np.empty(2 * L + 1)
+            new_x = np.empty(2 * L - 1)
             id_nodes = []
             id_faces = []
 
-            new_x[0] = -0.5*(x[1] - x[0])
             id_faces.append(0)
             for i in range(L - 1):
-                new_x[2 * i + 1] = x[i]
-                id_nodes.append(2 * i + 1)
-                new_x[2 * i + 2] = 0.5 * (x[i] + x[i + 1])
-                id_faces.append(2 * i + 2)
-            new_x[-2] = x[-1]
-            id_nodes.append(2 * i + 3)
-            new_x[-1] = x[-1] + 0.5*(x[-1] - x[-2])
-            id_faces.append(2 * i + 4)
+                new_x[2 * i] = x[i]
+                id_nodes.append(2 * i)
+                new_x[2 * i + 1] = 0.5 * (x[i] + x[i + 1])
+                id_faces.append(2 * i + 1)
+            new_x[-1] = x[-1]
+            id_nodes.append(2 * i + 2)
             return new_x, id_nodes, id_faces
 
         def merge(self, x, flux, flux_f):
             L = len(x)
             merged_flux = np.empty(self.L_grid)
-            for i in range(L):
-                merged_flux[2 * i] = flux_f[i]
-                merged_flux[2 * i + 1] = flux[i]
-            merged_flux[-1] = flux_f[-1]
+            for i in range(L - 1):
+                merged_flux[2 * i] = flux[i]
+                merged_flux[2 * i + 1] = flux_f[i]
+            merged_flux[-1] = flux[-1]
 
             return merged_flux
 
@@ -117,28 +124,32 @@ class FDMMixin:
             :return:
             """
 
-            flux_f = np.empty(self.L + 1)
-            a_face = np.empty(self.L + 1)
-            a_face[0] = a[0]
-            a_face[1:-1] = (a[1:] + a[0:-1]) / 2
-            a_face[-1] = a[-1]
+            flux_f = np.empty(self.L - 1)
 
-            for j, a_j in enumerate(a_face):
-                if a_j >= 0:
-                    i_p = j - 1
+            for f in range(self.L-1):
+
+                x_f = self.x_grid[2 * f + 1]
+                x_i = self.x_grid[2 * f]
+                x_ip1 = self.x_grid[2 * f + 2]
+                a_i = a[f]
+                a_ip1 = a[f + 1]
+
+                a_f = a_i + (x_f - x_i) / (x_ip1 - x_i) * (a_ip1 + a_i)
+
+                if a_f >= 0:
+                    i_p = f
                     i_u = i_p - 1
                     i_d = i_p + 1
+
                 else:
-                    i_p = j
+                    i_p = f + 1
                     i_u = i_p + 1
                     i_d = i_p - 1
 
-                if i_u < 0 or i_d < 0:
-                    flux_f[j] = flux[j]
-                elif i_u >= self.L or i_d >= self.L:
-                    flux_f[j] = flux[-1]
-                else:
-                    flux_f[j] = self.calculate_flux_f(flux[i_p], flux[i_u], flux[i_d], self.x[i_p], self.x[i_u], self.x[i_d], self.x[j])
+                if i_u < 0 or i_u >= self.L:
+                    i_u = i_p
+
+                flux_f[f] = self.calculate_flux_f(flux[i_p], flux[i_u], flux[i_d], self.x[i_p], self.x[i_u], self.x[i_d], self.x[f])
 
             return flux_f
 
