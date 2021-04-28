@@ -3,3 +3,4 @@ Sympy
 numpy
 jupyter
 matplotlib
+pint

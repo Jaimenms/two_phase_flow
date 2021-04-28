@@ -28,7 +28,7 @@ class TestFdmFluxDelimiters(TestCase):
                 self.assertAlmostEqual(df_correct_i, df_calc_i, places=places)
 
     def test_hrs_1(self):
-        operator = self.m.Gradient(self.x, order=FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA)
+        operator = self.m.Gradient(self.x, order=FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.MINMOD)
         df_calc = operator(self.f1, np.ones_like(self.f2))
         self.subtests(self.df1, df_calc, places=7)
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from models.model import Model
+from models.model.model import Model
 import numpy as np
 
 class Solver(ABC):
