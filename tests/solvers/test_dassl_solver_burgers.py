@@ -4,7 +4,7 @@ from models.burgers import Burgers
 import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
-from methods.fdm.fdm_mixin import FluxDelimiterEnum, FDMEnum
+from methods.fdm.fdm_mixin import FluxDelimiterEnum, SchemeM1FDMEnum
 
 class TestDasslSolverBurgers(TestCase):
 
@@ -27,7 +27,7 @@ class TestDasslSolverBurgers(TestCase):
         f = interpolate.interp1d(xa, ya, kind='linear')
         y0 = f(x)
 
-        model = Burgers(x, order=FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA)
+        model = Burgers(x, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA)
 
         return t0, y0, x, model
 
@@ -39,7 +39,7 @@ class TestDasslSolverBurgers(TestCase):
         t0 = np.linspace(0, 0.5, 10)
         x = np.linspace(0, 1., N)
         y0 = +(np.sin(2*3.1415*x) + np.sin(3.1415*x)/2)
-        model = Burgers(x, order=FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA)
+        model = Burgers(x, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA)
         #model.Parameters.y_LB = y0[0]
 
         return t0, y0, x, model

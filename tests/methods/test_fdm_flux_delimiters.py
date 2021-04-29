@@ -1,6 +1,6 @@
 from unittest import TestCase
 import numpy as np
-from methods.fdm.fdm_mixin import FDMMixin, FDMEnum, FluxDelimiterEnum
+from methods.fdm.fdm_mixin import FDMMixin, SchemeM1FDMEnum, FluxDelimiterEnum
 from methods.fdm.fdm_error import FDMError
 
 
@@ -28,12 +28,12 @@ class TestFdmFluxDelimiters(TestCase):
                 self.assertAlmostEqual(df_correct_i, df_calc_i, places=places)
 
     def test_hrs_1(self):
-        operator = self.m.Gradient(self.x, order=FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.MINMOD)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.MINMOD)
         df_calc = operator(self.f1, np.ones_like(self.f2))
         self.subtests(self.df1, df_calc, places=7)
 
     def test_hrs_2(self):
-        operator = self.m.Gradient(self.x,order=FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.SMART)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.SMART)
         df_calc = operator(self.fh, np.ones_like(self.fh))
         self.subtests(self.dfh[0:5], df_calc[0:5], places=7)
         self.subtests(self.dfh[6:], df_calc[6:], places=7)

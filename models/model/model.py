@@ -10,12 +10,22 @@ Q_ = ureg.Quantity
 
 class Model(ABC, FDMMixin):
 
-    def __init__(self):
-        # TODO - Progress bar
-        pass
+    iter = None
+
+    def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
+
+        if self.iter is None:
+            self.iter = 0
+        else:
+            new_iter = np.count_nonzero(par.solver_t <= t)
+            if new_iter > self.iter:
+                self.iter = new_iter
+                print("{}/{}".format(self.iter, len(par.solver_t)))
+
+        return self.residue(t, y, yp, par)
 
     @abstractmethod
-    def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None) -> Tuple[np.array, int]:
+    def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None) -> Tuple[np.array, int]:
         pass
 
     def jacobian(self, t: float, y: np.ndarray, yp: np.ndarray, par=None) -> Union[None, Tuple[np.array, int]]:

@@ -7,7 +7,7 @@ ureg = UnitRegistry()
 
 class ModelParameter:
 
-    def __init__(self, name: str, value: float, unit: str, domains=Tuple[ModelDomain], description=""):
+    def __init__(self, name: str, value: float, unit: str, domains=Tuple[ModelDomain, ...], description=""):
 
         eng_value = value * ureg(unit)
         self.name = name

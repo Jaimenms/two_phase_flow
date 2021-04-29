@@ -1,6 +1,6 @@
 from unittest import TestCase
 import numpy as np
-from methods.fdm.fdm_mixin import FDMMixin, FDMEnum, FluxDelimiterEnum
+from methods.fdm.fdm_mixin import FDMMixin, SchemeM1FDMEnum, FluxDelimiterEnum
 from methods.fdm.fdm_error import FDMError
 
 
@@ -28,66 +28,66 @@ class TestFdmScuemes(TestCase):
                 self.assertAlmostEqual(df_correct_i, df_calc_i, places=places)
 
     def test_central_n2(self):
-        operator = self.m.Gradient(self.x, FDMEnum.CENTRAL_N2)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2)
         df_calc = operator(self.f2)
         self.subtests(self.df2, df_calc, places=7)
 
     def test_central_n4(self):
-        operator = self.m.Gradient(self.x, FDMEnum.CENTRAL_N4)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N4)
         df_calc = operator(self.f4)
         self.subtests(self.df4, df_calc, places=7)
 
     def test_central_n6(self):
-        operator = self.m.Gradient(self.x, FDMEnum.CENTRAL_N6)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N6)
         df_calc = operator(self.f6)
         self.subtests(self.df6, df_calc, places=7)
 
     def test_central_n8(self):
-        operator = self.m.Gradient(self.x, FDMEnum.CENTRAL_N8)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)
 
     def test_central_n8_error(self):
         x = np.logspace(0, 1, 5)
         with self.assertRaises(FDMError) as context:
-            operator = self.m.Gradient(x, FDMEnum.CENTRAL_N8)
+            operator = self.m.Gradient(x, scheme=SchemeM1FDMEnum.CENTRAL_N8)
 
     def test_upwind_n2(self):
-        operator = self.m.Gradient(self.x, FDMEnum.UPWIND_N2)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N2)
         df_calc = operator(self.f2)
         self.subtests(self.df2, df_calc, places=7)
 
     def test_upwind_n4(self):
-        operator = self.m.Gradient(self.x, FDMEnum.UPWIND_N4)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N4)
         df_calc = operator(self.f4)
         self.subtests(self.df4, df_calc, places=7)
 
     def test_upwind_n6(self):
-        operator = self.m.Gradient(self.x, FDMEnum.UPWIND_N6)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N6)
         df_calc = operator(self.f6)
         self.subtests(self.df6, df_calc, places=7)
 
     def test_upwind_n8(self):
-        operator = self.m.Gradient(self.x, FDMEnum.UPWIND_N8)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)
 
     def test_downwind_n2(self):
-        operator = self.m.Gradient(self.x, FDMEnum.DOWNWIND_N2)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N2)
         df_calc = operator(self.f2)
         self.subtests(self.df2, df_calc, places=7)
 
     def test_downwind_n4(self):
-        operator = self.m.Gradient(self.x, FDMEnum.DOWNWIND_N4)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N4)
         df_calc = operator(self.f4)
         self.subtests(self.df4, df_calc, places=7)
 
     def test_downwind_n6(self):
-        operator = self.m.Gradient(self.x, FDMEnum.DOWNWIND_N6)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N6)
         df_calc = operator(self.f6)
         self.subtests(self.df6, df_calc, places=7)
 
     def test_downwind_n8(self):
-        operator = self.m.Gradient(self.x, FDMEnum.DOWNWIND_N8)
+        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)

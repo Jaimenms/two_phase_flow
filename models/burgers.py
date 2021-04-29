@@ -1,27 +1,19 @@
 from models.model.model import Model
 import numpy as np
-from methods.fdm.fdm_mixin import FDMMixin, FDMEnum, FluxDelimiterEnum
+from methods.fdm.fdm_mixin import FDMMixin, SchemeM1FDMEnum, FluxDelimiterEnum
 
 class Burgers(Model, FDMMixin):
 
     jacobian = None
     iter = None
 
-    def __init__(self, x, order: FDMEnum = FDMEnum.CENTRAL_N8, flux_delimiter: FluxDelimiterEnum = None):
+    def __init__(self, x, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = None):
         super().__init__()
         self.x = x
 
-        self.grad_operator = self.Gradient(x, order=order, flux_delimiter=flux_delimiter)
+        self.grad_operator = self.Gradient(x, scheme=scheme, flux_delimiter=flux_delimiter)
 
-    def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
-
-        if self.iter is None:
-            self.iter = 0
-        else:
-            new_iter = np.count_nonzero(par.solver_t <= t)
-            if new_iter > self.iter:
-                self.iter = new_iter
-                print("{}/{}".format(self.iter, len(par.solver_t)))
+    def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
         res = yp + 0.5 * self.grad_operator(y**2, y)
         if par is not None and par.y_LB is not None:

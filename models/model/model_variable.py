@@ -9,5 +9,9 @@ Q_ = ureg.Quantity
 
 class ModelVariable:
 
-    def __init__(self, name, description="", domains=Tuple[ModelDomain]):
-        pass
+    def __init__(self, name, domains: Tuple[ModelDomain, ...] = (), description=""):
+
+        self.name = name
+        self.domains = domains
+        self.description = description
+        self.shape = (len(domain) for domain in domains)

@@ -1,18 +1,29 @@
 import numpy as np
-from methods.fdm.fdm_enum import FDMEnum
-from methods.fdm.fdm_error import FDMError
+from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
+from methods.fdm.schemes.scheme_m2_fdm_enum import SchemeM2FDMEnum
+from methods.fdm.schemes.order_fdm_enum import OrderFDMEnum
 from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 from scipy import sparse
+from typing import Union
+from methods.fdm.fdm_error import FDMError
+
 
 class FDMMixin:
 
     class Gradient:
 
         def __init__(self,
-                     x: np.ndarray = None,
-                     order: FDMEnum = FDMEnum.CENTRAL_N2,
+                     x,
+                     order: OrderFDMEnum = OrderFDMEnum.FIRST,
+                     scheme: Union[SchemeM1FDMEnum, SchemeM2FDMEnum] = SchemeM1FDMEnum.CENTRAL_N2,
                      flux_delimiter: FluxDelimiterEnum = None
                      ):
+
+            if order.value[0] != scheme.value[2]:
+                raise FDMError('Gradient order and finite difference scheme are not consistent.')
+
+            if flux_delimiter is not None and order.value[0] != 1:
+                raise FDMError('Flux delimiter is not compatible with this gradient order.')
 
             if flux_delimiter is None:
                 x_grid, id_nodes, id_faces = self.normal_grid(x)
@@ -22,7 +33,7 @@ class FDMMixin:
             L_grid = len(x_grid)
             L = len(x)
 
-            N, weight_fcn = order.value
+            N, weight_fcn, M = scheme.value
 
             if N > L_grid - 1:
                 raise FDMError('Number of nodes is insufficient for the selected gradient order ')
@@ -49,6 +60,24 @@ class FDMMixin:
                 full_weights[j, ini:fini] = c_i
 
             self.sparse_weights = sparse.csr_matrix(full_weights)
+
+            # f = np.zeros((10,10,10))
+            # g = np.zeros(f)
+            # stripe = f.stripe[axis]
+            # n = len(f)
+            # for i in range(int(n/stripe)):
+            #     ini = i * stripe
+            #     fini = (i+1) * stripe
+            #     f_i = f[ini:fini]
+            #     # calculate grad
+            #     g_i = 0
+            #     g[ini:fini] = g_i
+            #
+            # for i,j in domain_pairs:
+            #     x_stripe = np.squeeze(b[(None,i,j]])
+            #     g = self.xxx(x_stripe)
+            #     G[:,i,j] = g[:]
+
 
             self.x = x
             self.L = L

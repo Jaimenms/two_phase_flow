@@ -1,7 +1,7 @@
 from .taylor_table import TaylorTable
 
 
-class N2TaylorTable(TaylorTable):
+class N2TaylorTableM1(TaylorTable):
 
     @staticmethod
     def lambdas():
