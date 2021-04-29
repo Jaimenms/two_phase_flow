@@ -1,6 +1,6 @@
 from typing import Tuple
 from pint import UnitRegistry
-from model_domain import ModelDomain
+from models.model.model_domain import ModelDomain
 
 ureg = UnitRegistry()
 

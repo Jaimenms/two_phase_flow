@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Tuple, Union
 from pint import UnitRegistry
-from model_domain import ModelDomain
+from models.model.model_domain import ModelDomain
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -15,3 +15,5 @@ class ModelVariable:
         self.domains = domains
         self.description = description
         self.shape = (len(domain) for domain in domains)
+
+

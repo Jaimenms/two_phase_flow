@@ -13,11 +13,12 @@ class FDMMixin:
     class Gradient:
 
         def __init__(self,
-                     x,
-                     order: OrderFDMEnum = OrderFDMEnum.FIRST,
-                     scheme: Union[SchemeM1FDMEnum, SchemeM2FDMEnum] = SchemeM1FDMEnum.CENTRAL_N2,
-                     flux_delimiter: FluxDelimiterEnum = None
-                     ):
+             x,
+             order: OrderFDMEnum = OrderFDMEnum.FIRST,
+             scheme: Union[SchemeM1FDMEnum, SchemeM2FDMEnum] = SchemeM1FDMEnum.CENTRAL_N2,
+             flux_delimiter: FluxDelimiterEnum = None,
+             axis=0,
+        ):
 
             if order.value[0] != scheme.value[2]:
                 raise FDMError('Gradient order and finite difference scheme are not consistent.')
@@ -61,25 +62,8 @@ class FDMMixin:
 
             self.sparse_weights = sparse.csr_matrix(full_weights)
 
-            # f = np.zeros((10,10,10))
-            # g = np.zeros(f)
-            # stripe = f.stripe[axis]
-            # n = len(f)
-            # for i in range(int(n/stripe)):
-            #     ini = i * stripe
-            #     fini = (i+1) * stripe
-            #     f_i = f[ini:fini]
-            #     # calculate grad
-            #     g_i = 0
-            #     g[ini:fini] = g_i
-            #
-            # for i,j in domain_pairs:
-            #     x_stripe = np.squeeze(b[(None,i,j]])
-            #     g = self.xxx(x_stripe)
-            #     G[:,i,j] = g[:]
-
-
             self.x = x
+            self.axis = axis
             self.L = L
             self.N = N
             self.x_grid = x_grid
@@ -92,21 +76,33 @@ class FDMMixin:
                 self.flux_delimiter = None
                 self.calculate_grid_flux = self.grid_flux_without_delimiter
 
-        def grid_flux_without_delimiter(self, f, a=None):
+        def grid_flux_without_delimiter(self, f, a):
             return f
 
-        def grid_flux_with_delimiter(self, f, a=None):
+        def grid_flux_with_delimiter(self, f, a):
             flux_f = self.get_flux_faces(f, a)
             grid_f = self.merge(self.x, f, flux_f)
             return grid_f
 
+        def __call__(self, f, a=None,):
 
-        def __call__(self, f, a=None):
+            axis = self.axis
 
+            if a is None:
+                a = f
+            Ni, Nk = f.shape[:axis], f.shape[axis + 1:]
+            grads = np.empty_like(f)
+            for ii in np.ndindex(Ni):
+                for kk in np.ndindex(Nk):
+                    f = self.calculate(f[ii + np.s_[:, ] + kk], a[ii + np.s_[:, ] + kk])
+                    Nj = f.shape
+                    for jj in np.ndindex(Nj):
+                        grads[ii + jj + kk] = f[jj]
+            return grads
+
+        def calculate(self, f, a):
             grid_f = self.calculate_grid_flux(f, a)
-
             grads = self.sparse_weights.dot(grid_f)
-
             return grads
 
         def normal_grid(self, x):

@@ -24,7 +24,7 @@ class AdvancedModelMixin:
         if not self.INDEXES:
             _from = 0
         else:
-            _from = max((index.to for name, index in self.INDEXES.items()))
+            _from = max((index.fini for name, index in self.INDEXES.items()))
 
         n = 1
         for domain in input.domains:
@@ -62,12 +62,12 @@ class Burgers(Model, FDMMixin, AdvancedModelMixin):
 
     jacobian = None
 
-    def __init__(self, x, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = None):
+    def __init__(self, x1, x2, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = None):
         super().__init__()
 
         # Register all domains
-        self.register_domain(ModelDomain("x", value=x, unit="m", description="x coordinate"))
-        self.register_domain(ModelDomain("y", value=x, unit="m", description="y coordinate"))
+        self.register_domain(ModelDomain("x1", value=x1, unit="m", description="x1 coordinate"))
+        self.register_domain(ModelDomain("x2", value=x2, unit="m", description="x2 coordinate"))
 
         # Register all constants
         # self.register_constant()
@@ -76,31 +76,28 @@ class Burgers(Model, FDMMixin, AdvancedModelMixin):
         # self.register_parameter()
 
         # Register all variables
-        self.register_variable(ModelVariable("x-velocity", domains=(self.domain('x'), self.domain('y'))))
-        self.register_variable(ModelVariable("y-velocity", domains=(self.domain('x'), self.domain('y'))))
+        self.register_variable(ModelVariable("u-velocity", domains=(self.domain('x1'), self.domain('x2'))))
+        self.register_variable(ModelVariable("v-velocity", domains=(self.domain('x1'), self.domain('x2'))))
 
         # Operators
-        self.grad_x = self.Gradient(self.domain('x').base_value, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad_y = self.Gradient(self.domain('y').base_value, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x1 = self.Gradient(self.domain('x1').base_value, axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x2 = self.Gradient(self.domain('x2').base_value, axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
 
-
-    def parse(self, y: np.ndarray):
-        return dict()
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
         y = self.parse_variable_vector(y)
         yp = self.parse_variable_vector(yp)
 
-        u = y["x-velocity"]
-        dudt = yp["y-velocity"]
+        u = y["u-velocity"]
+        dudt = yp["u-velocity"]
 
-        v = y["x-velocity"]
-        dvdt = yp["y-velocity"]
+        v = y["v-velocity"]
+        dvdt = yp["v-velocity"]
 
-        res_u = dudt + u*self.grad_x(u, u) + v*self.grad_y(u, v)
+        res_u = dudt + u*self.grad_x1(u, a=u) + v*self.grad_x2(u, a=v)
 
-        res_v = dvdt + v*self.grad_x(v, u) + v*self.grad_y(v, v)
+        res_v = dvdt + v*self.grad_x1(v, a=u) + v*self.grad_x2(v, a=v)
 
         res = np.concatenate((res_u, res_v), axis=None)
 
@@ -108,7 +105,7 @@ class Burgers(Model, FDMMixin, AdvancedModelMixin):
 
         return res, ires
 
-    def __str__(self):
+    def str_equation(self):
         return "dv/dt + v*dv/dx = 0"
 
     class Parameters:
