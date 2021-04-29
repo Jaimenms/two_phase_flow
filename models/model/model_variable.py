@@ -14,6 +14,15 @@ class ModelVariable:
         self.name = name
         self.domains = domains
         self.description = description
-        self.shape = (len(domain) for domain in domains)
+        self.shape = tuple([len(domain) for domain in domains])
+        self.offset = None
+
+        size = 1
+        for ele in  self.shape:
+            size *= ele
+        self.size = size
+
+    def register(self, offset):
+        self.offset = offset
 
 

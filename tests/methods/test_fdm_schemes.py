@@ -4,7 +4,7 @@ from methods.fdm.fdm_mixin import FDMMixin, SchemeM1FDMEnum, FluxDelimiterEnum
 from methods.fdm.fdm_error import FDMError
 
 
-class TestFdmScuemes(TestCase):
+class TestFdmSchemes(TestCase):
 
     def setUp(self):
         self.m = FDMMixin()
@@ -91,3 +91,77 @@ class TestFdmScuemes(TestCase):
         operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)
+
+
+    def test_central_n2_2d(self):
+
+        x = np.linspace(0, 5, 6)
+        y = np.linspace(0, 7, 8)
+        X, Y = np.meshgrid(x,y, indexing='ij')
+
+        f1 = X**2
+        f2 = Y**3
+
+        df1dx = 2*X
+        df1dy = np.zeros_like(X)
+        df2dx = np.zeros_like(Y)
+        df2dy = 3*Y**2
+
+        grad_x = self.m.Gradient(x, axis=0, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_y = self.m.Gradient(y, axis=1, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+
+        df1dx_calc = grad_x(f1,a=X)
+        df1dy_calc = grad_y(f1,a=X)
+        df2dx_calc = grad_x(f2,a=Y)
+        df2dy_calc = grad_y(f2,a=Y)
+
+        np.testing.assert_array_almost_equal(df1dx, df1dx_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df1dy, df1dy_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df2dx, df2dx_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df2dy, df2dy_calc, decimal=6)
+
+
+    def test_central_n2_3d(self):
+
+        x = np.linspace(0, 5, 6)
+        y = np.linspace(10, 17, 8)
+        z = np.linspace(20, 30, 11)
+        X, Y, Z = np.meshgrid(x,y,z, indexing='ij')
+
+        f1 = X**2
+        f2 = Y**3
+        f3 = Z**4
+
+        df1dx = 2*X
+        df1dy = np.zeros_like(X)
+        df1dz = np.zeros_like(X)
+        df2dx = np.zeros_like(Y)
+        df2dy = 3*Y**2
+        df2dz = np.zeros_like(Y)
+        df3dx = np.zeros_like(Y)
+        df3dy = np.zeros_like(Y)
+        df3dz = 4*Z**3
+
+        grad_x = self.m.Gradient(x, axis=0, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_y = self.m.Gradient(y, axis=1, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_z = self.m.Gradient(z, axis=2, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+
+        df1dx_calc = grad_x(f1,a=X)
+        df1dy_calc = grad_y(f1,a=X)
+        df1dz_calc = grad_z(f1,a=X)
+        df2dx_calc = grad_x(f2,a=Y)
+        df2dy_calc = grad_y(f2,a=Y)
+        df2dz_calc = grad_z(f2,a=Y)
+        df3dx_calc = grad_x(f3,a=Y)
+        df3dy_calc = grad_y(f3,a=Y)
+        df3dz_calc = grad_z(f3,a=Y)
+
+        np.testing.assert_array_almost_equal(df1dx, df1dx_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df1dy, df1dy_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df1dz, df1dz_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df2dx, df2dx_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df2dy, df2dy_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df2dz, df2dz_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df3dx, df3dx_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df3dy, df3dy_calc, decimal=6)
+        np.testing.assert_array_almost_equal(df3dz, df3dz_calc, decimal=6)

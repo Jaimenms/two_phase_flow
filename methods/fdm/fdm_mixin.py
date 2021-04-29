@@ -6,7 +6,7 @@ from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 from scipy import sparse
 from typing import Union
 from methods.fdm.fdm_error import FDMError
-
+import itertools
 
 class FDMMixin:
 
@@ -86,18 +86,14 @@ class FDMMixin:
 
         def __call__(self, f, a=None,):
 
-            axis = self.axis
+            grads = np.zeros_like(f)
 
-            if a is None:
-                a = f
-            Ni, Nk = f.shape[:axis], f.shape[axis + 1:]
-            grads = np.empty_like(f)
+            Ni, Nk = f.shape[:self.axis], f.shape[self.axis + 1:]
             for ii in np.ndindex(Ni):
                 for kk in np.ndindex(Nk):
-                    f = self.calculate(f[ii + np.s_[:, ] + kk], a[ii + np.s_[:, ] + kk])
-                    Nj = f.shape
-                    for jj in np.ndindex(Nj):
-                        grads[ii + jj + kk] = f[jj]
+                    grads[ii + np.s_[:, ] + kk] = self.calculate(f[ii + np.s_[:, ] + kk], a[ii + np.s_[:, ] + kk])
+
+
             return grads
 
         def calculate(self, f, a):

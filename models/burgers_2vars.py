@@ -9,54 +9,33 @@ from models.model.model_constant import ModelConstant
 
 class AdvancedModelMixin:
 
-    DOMAINS = dict()
-    CONSTANTS = dict()
-    PARAMETERS = dict()
-    VARIABLES = dict()
-    INDEXES = dict()
+
+    def initialize(self):
+        self.domains = dict()
+        self.constants = dict()
+        self.parameters = dict()
+        self.variables = dict()
+        self._offset = 0
 
     def register_domain(self, input: ModelDomain):
-        self.DOMAINS[input.name] = input
+        self.domains[input.name] = input
 
     def register_variable(self, input: ModelVariable):
-        self.VARIABLES[input.name] = input
-
-        if not self.INDEXES:
-            _from = 0
-        else:
-            _from = max((index.fini for name, index in self.INDEXES.items()))
-
-        n = 1
-        for domain in input.domains:
-            n *= len(domain)
-
-        _to = _from + n
-
-        self.INDEXES[input.name] = {"ini": _from, "fini": _to}
-
+        input.offset = self._offset
+        self._offset += input.size
+        self.variables[input.name] = input
 
     def register_parameter(self, input: ModelParameter):
-        self.PARAMETERS[input.name] = input
+        self.parameters[input.name] = input
 
     def register_constant(self, input: ModelConstant):
-        self.CONSTANTS[input.name] = input
+        self.constants[input.name] = input
 
-    def parse_variable_vector(self, y: np.ndarray, reshape=True):
-        parsed_y = dict()
-        for name, index in self.INDEXES.items():
-            values = y[index.ini:index.fini]
-            if reshape:
-                variable = self.VARIABLES[name]
-                values = np.reshape(values, newshape=variable.shape)
-            parsed_y[name] = values
-        return parsed_y
-
-    def domain(self, name) -> ModelDomain:
-        return self.DOMAINS[name]
-
-    def domains(self):
-        return self.DOMAINS
-
+    def parse(self, name, y: np.ndarray):
+        variable = self.variables[name]
+        ini = variable.offset
+        fini = variable.offset + variable.size
+        return np.reshape(y[ini:fini], newshape=variable.shape)
 
 class Burgers(Model, FDMMixin, AdvancedModelMixin):
 
@@ -64,6 +43,7 @@ class Burgers(Model, FDMMixin, AdvancedModelMixin):
 
     def __init__(self, x1, x2, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = None):
         super().__init__()
+        self.initialize()
 
         # Register all domains
         self.register_domain(ModelDomain("x1", value=x1, unit="m", description="x1 coordinate"))
@@ -76,24 +56,21 @@ class Burgers(Model, FDMMixin, AdvancedModelMixin):
         # self.register_parameter()
 
         # Register all variables
-        self.register_variable(ModelVariable("u-velocity", domains=(self.domain('x1'), self.domain('x2'))))
-        self.register_variable(ModelVariable("v-velocity", domains=(self.domain('x1'), self.domain('x2'))))
+        self.register_variable(ModelVariable("u-velocity", domains=(self.domains['x1'], self.domains['x2'])))
+        self.register_variable(ModelVariable("v-velocity", domains=(self.domains['x1'], self.domains['x2'])))
 
         # Operators
-        self.grad_x1 = self.Gradient(self.domain('x1').base_value, axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad_x2 = self.Gradient(self.domain('x2').base_value, axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x1 = self.Gradient(self.domains['x1'].base_value, axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x2 = self.Gradient(self.domains['x2'].base_value, axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
 
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
-        y = self.parse_variable_vector(y)
-        yp = self.parse_variable_vector(yp)
+        u = self.parse("u-velocity", y)
+        v = self.parse("v-velocity", y)
 
-        u = y["u-velocity"]
-        dudt = yp["u-velocity"]
-
-        v = y["v-velocity"]
-        dvdt = yp["v-velocity"]
+        dudt = self.parse("u-velocity", yp)
+        dvdt = self.parse("v-velocity", yp)
 
         res_u = dudt + u*self.grad_x1(u, a=u) + v*self.grad_x2(u, a=v)
 
