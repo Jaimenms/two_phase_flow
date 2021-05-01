@@ -1,17 +1,19 @@
 from models.model.model import Model
 import numpy as np
-from methods.fdm.fdm_mixin import FDMMixin, SchemeM1FDMEnum, FluxDelimiterEnum
+from methods.fdm.operations.gradient_hrs import GradientHRS
+from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
+from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 
-class Burgers(Model, FDMMixin):
+class Burgers(Model):
 
     jacobian = None
     iter = None
 
-    def __init__(self, x, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = None):
+    def __init__(self, x, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA):
         super().__init__()
         self.x = x
 
-        self.grad_operator = self.Gradient(x, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_operator = GradientHRS(x, scheme=scheme, flux_delimiter=flux_delimiter)
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 

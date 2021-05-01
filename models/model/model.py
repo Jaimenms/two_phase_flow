@@ -1,4 +1,3 @@
-from methods.fdm.fdm_mixin import FDMMixin
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import Tuple, Union
@@ -8,7 +7,7 @@ ureg = UnitRegistry()
 Q_ = ureg.Quantity
 
 
-class Model(ABC, FDMMixin):
+class Model(ABC):
 
     iter = None
 

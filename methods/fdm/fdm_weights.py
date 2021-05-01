@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
+from scipy import sparse
 
 
 class FDMWeights(ABC):
@@ -23,3 +24,14 @@ class FDMWeights(ABC):
             c[k] = self.lambdas[l][k](x_i)
 
         return c, ini, fini
+
+    def matrix(self, x):
+
+        L = len(x)
+
+        weights = np.zeros((L, L))
+        for i in range(L):
+            c_i, ini, fini = self.__call__(L, i, x)
+            weights[i, ini:fini] = c_i
+
+        return weights

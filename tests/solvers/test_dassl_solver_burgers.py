@@ -4,7 +4,8 @@ from models.burgers import Burgers
 import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
-from methods.fdm.fdm_mixin import FluxDelimiterEnum, SchemeM1FDMEnum
+from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
+from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
 
 class TestDasslSolverBurgers(TestCase):
 
@@ -39,7 +40,7 @@ class TestDasslSolverBurgers(TestCase):
         t0 = np.linspace(0, 0.5, 10)
         x = np.linspace(0, 1., N)
         y0 = +(np.sin(2*3.1415*x) + np.sin(3.1415*x)/2)
-        model = Burgers(x, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA)
+        model = Burgers(x, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA2)
         #model.Parameters.y_LB = y0[0]
 
         return t0, y0, x, model
@@ -71,7 +72,7 @@ class TestDasslSolverBurgers(TestCase):
 
         t0, y0, x, model = self.case2()
 
-        t, y, yp = DasslSolver.run(model, t0, y0)
+        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-3, atol=1e-3)
 
         if plot:
             self.plot_result(t, x, y)

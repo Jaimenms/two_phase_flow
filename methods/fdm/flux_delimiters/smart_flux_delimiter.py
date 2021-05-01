@@ -1,6 +1,7 @@
 from .flux_delimiter import FluxDelimiter
 import numpy as np
 
+
 class SmartFluxDelimiter(FluxDelimiter):
 
     def __call__(self, phi_p: np.ndarray, tetha_f: np.ndarray, tetha_p: np.ndarray) -> np.ndarray:

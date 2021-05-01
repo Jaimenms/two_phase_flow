@@ -1,13 +1,13 @@
 from unittest import TestCase
 import numpy as np
-from methods.fdm.fdm_mixin import FDMMixin, SchemeM1FDMEnum, FluxDelimiterEnum
 from methods.fdm.fdm_error import FDMError
+from methods.fdm.operations.first_gradient import FirstGradient
+from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
 
 
-class TestFdmSchemes(TestCase):
+class TestOperationFirstGradient(TestCase):
 
     def setUp(self):
-        self.m = FDMMixin()
         self.x = np.linspace(0,1,10)
         self.f0, self.df0 = self.x ** 0, 0 * self.x ** 0
         self.f1, self.df1 = self.x ** 1, 1 * self.x ** 0
@@ -28,70 +28,69 @@ class TestFdmSchemes(TestCase):
                 self.assertAlmostEqual(df_correct_i, df_calc_i, places=places)
 
     def test_central_n2(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2)
         df_calc = operator(self.f2)
         self.subtests(self.df2, df_calc, places=7)
 
     def test_central_n4(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N4)
         df_calc = operator(self.f4)
         self.subtests(self.df4, df_calc, places=7)
 
     def test_central_n6(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N6)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N6)
         df_calc = operator(self.f6)
         self.subtests(self.df6, df_calc, places=7)
 
     def test_central_n8(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N8)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)
 
     def test_central_n8_error(self):
         x = np.logspace(0, 1, 5)
         with self.assertRaises(FDMError) as context:
-            operator = self.m.Gradient(x, scheme=SchemeM1FDMEnum.CENTRAL_N8)
+            operator = FirstGradient(x, scheme=SchemeM1FDMEnum.CENTRAL_N8)
 
     def test_upwind_n2(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N2)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N2)
         df_calc = operator(self.f2)
         self.subtests(self.df2, df_calc, places=7)
 
     def test_upwind_n4(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N4)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N4)
         df_calc = operator(self.f4)
         self.subtests(self.df4, df_calc, places=7)
 
     def test_upwind_n6(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N6)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N6)
         df_calc = operator(self.f6)
         self.subtests(self.df6, df_calc, places=7)
 
     def test_upwind_n8(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N8)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.UPWIND_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)
 
     def test_downwind_n2(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N2)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N2)
         df_calc = operator(self.f2)
         self.subtests(self.df2, df_calc, places=7)
 
     def test_downwind_n4(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N4)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N4)
         df_calc = operator(self.f4)
         self.subtests(self.df4, df_calc, places=7)
 
     def test_downwind_n6(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N6)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N6)
         df_calc = operator(self.f6)
         self.subtests(self.df6, df_calc, places=7)
 
     def test_downwind_n8(self):
-        operator = self.m.Gradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N8)
+        operator = FirstGradient(self.x, scheme=SchemeM1FDMEnum.DOWNWIND_N8)
         df_calc = operator(self.f8)
         self.subtests(self.df8, df_calc, places=7)
-
 
     def test_central_n2_2d(self):
 
@@ -107,13 +106,13 @@ class TestFdmSchemes(TestCase):
         df2dx = np.zeros_like(Y)
         df2dy = 3*Y**2
 
-        grad_x = self.m.Gradient(x, axis=0, scheme=SchemeM1FDMEnum.CENTRAL_N4)
-        grad_y = self.m.Gradient(y, axis=1, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_x = FirstGradient(x, axis=0, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_y = FirstGradient(y, axis=1, scheme=SchemeM1FDMEnum.CENTRAL_N4)
 
-        df1dx_calc = grad_x(f1,a=X)
-        df1dy_calc = grad_y(f1,a=X)
-        df2dx_calc = grad_x(f2,a=Y)
-        df2dy_calc = grad_y(f2,a=Y)
+        df1dx_calc = grad_x(f1)
+        df1dy_calc = grad_y(f1)
+        df2dx_calc = grad_x(f2)
+        df2dy_calc = grad_y(f2)
 
         np.testing.assert_array_almost_equal(df1dx, df1dx_calc, decimal=6)
         np.testing.assert_array_almost_equal(df1dy, df1dy_calc, decimal=6)
@@ -142,19 +141,19 @@ class TestFdmSchemes(TestCase):
         df3dy = np.zeros_like(Y)
         df3dz = 4*Z**3
 
-        grad_x = self.m.Gradient(x, axis=0, scheme=SchemeM1FDMEnum.CENTRAL_N4)
-        grad_y = self.m.Gradient(y, axis=1, scheme=SchemeM1FDMEnum.CENTRAL_N4)
-        grad_z = self.m.Gradient(z, axis=2, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_x = FirstGradient(x, axis=0, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_y = FirstGradient(y, axis=1, scheme=SchemeM1FDMEnum.CENTRAL_N4)
+        grad_z = FirstGradient(z, axis=2, scheme=SchemeM1FDMEnum.CENTRAL_N4)
 
-        df1dx_calc = grad_x(f1,a=X)
-        df1dy_calc = grad_y(f1,a=X)
-        df1dz_calc = grad_z(f1,a=X)
-        df2dx_calc = grad_x(f2,a=Y)
-        df2dy_calc = grad_y(f2,a=Y)
-        df2dz_calc = grad_z(f2,a=Y)
-        df3dx_calc = grad_x(f3,a=Y)
-        df3dy_calc = grad_y(f3,a=Y)
-        df3dz_calc = grad_z(f3,a=Y)
+        df1dx_calc = grad_x(f1)
+        df1dy_calc = grad_y(f1)
+        df1dz_calc = grad_z(f1)
+        df2dx_calc = grad_x(f2)
+        df2dy_calc = grad_y(f2)
+        df2dz_calc = grad_z(f2)
+        df3dx_calc = grad_x(f3)
+        df3dy_calc = grad_y(f3)
+        df3dz_calc = grad_z(f3)
 
         np.testing.assert_array_almost_equal(df1dx, df1dx_calc, decimal=6)
         np.testing.assert_array_almost_equal(df1dy, df1dy_calc, decimal=6)

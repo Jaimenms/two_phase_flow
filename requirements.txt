@@ -4,3 +4,4 @@ numpy
 jupyter
 matplotlib
 pint
+numba
