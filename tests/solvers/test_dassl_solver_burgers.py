@@ -43,10 +43,12 @@ class TestDasslSolverBurgers(TestCase):
         x = np.linspace(0, 1., N)
         y0 = +(np.sin(2*3.1415*x) + np.sin(3.1415*x)/2)
 
+        #lb = ModelParameter("lb", 0.0, "m/s")
+        #ub = ModelParameter("ub", 0.0, "m/s")
         lb = ModelParameter("lb", None, "m/s")
         ub = ModelParameter("ub", None, "m/s")
 
-        model = Burgers(x, lb=lb, ub=ub, scheme=SchemeM1FDMEnum.CENTRAL_N4, flux_delimiter=FluxDelimiterEnum.CUBISTA2)
+        model = Burgers(x, lb=lb, ub=ub, scheme=SchemeM1FDMEnum.CENTRAL_N4, flux_delimiter=FluxDelimiterEnum.SMART2)
 
         return t0, y0, x, model
 
@@ -65,7 +67,7 @@ class TestDasslSolverBurgers(TestCase):
 
         t0, y0, x, model = self.case1()
 
-        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-3, atol=1e-3)
+        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-6, atol=1e-6)
 
         if plot:
             self.plot_result(t, x, y)
@@ -77,7 +79,7 @@ class TestDasslSolverBurgers(TestCase):
 
         t0, y0, x, model = self.case2()
 
-        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-6, atol=1e-6)
+        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-3, atol=1e-6)
 
         if plot:
             self.plot_result(t, x, y)

@@ -141,6 +141,7 @@ class GradientHRS(Operation):
         xd = self.x[i_d]
 
         phi_p = self.normalize(flux_p, flux_u, flux_d)
+
         tetha_p = self.normalize(xp, xu, xd)
         if direction[0] >= 0:
             tetha_p[0] = tetha_p[1]
@@ -161,8 +162,9 @@ class GradientHRS(Operation):
 
     @staticmethod
     def normalize(p, u, d):
-        eps = 1e-9
+        num = p - u
         den = d - u
-        den[den == 0] = eps
-        #den[np.absolute(den) < eps] = eps
-        return (p - u) / den
+        check = den != 0
+        out = np.ones_like(p)
+        out[check] = num[check] / den[check]
+        return out

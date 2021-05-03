@@ -48,13 +48,13 @@ class Burgers(Model):
         if self.parameters['lb'].base_value is None and self.parameters['ub'].base_value is None:
             res_u = self.apply_regions(res_u, regions=(ModelRegionEnum.CLOSED_CLOSED, ))
             eqs.append(res_u)
-        elif self.parameters['lb'].base_value is not None:
+        elif self.parameters['lb'].base_value is not None and self.parameters['lb'].base_value is None:
             res_u = self.apply_regions(res_u, regions=(ModelRegionEnum.OPEN_CLOSED,))
             eqs.append(res_u)
             lb_x = self.apply_regions(u, regions=(ModelRegionEnum.LOWER, )) - self.parameters['lb'].base_value
             #ub_x = self.apply_regions(u, regions=(ModelRegionEnum.UPPER, )) - self.apply_regions(u, regions=(ModelRegionEnum.UPPER_MINUS_ONE,))
             eqs.append(lb_x)
-        elif self.parameters['ub'].base_value is not None:
+        elif self.parameters['lb'].base_value is None and self.parameters['ub'].base_value is not None:
             res_u = self.apply_regions(res_u, regions=(ModelRegionEnum.CLOSED_OPEN,))
             eqs.append(res_u)
             ub_x = self.apply_regions(u, regions=(ModelRegionEnum.UPPER,)) - self.parameters['ub'].base_value
