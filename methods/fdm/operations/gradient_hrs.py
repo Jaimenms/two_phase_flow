@@ -33,14 +33,16 @@ class GradientHRS(Operation):
         if N > L_hrs - 1:
             raise FDMError('Number of nodes is insufficient for the selected gradient order ')
 
+        bound_nodes_with_hrs = False
+
         weights_lrs = scheme_class.matrix(x)
         weights_hrs = scheme_class.matrix(x_hrs)
         weights = np.zeros((L, L_hrs))
         for j, i in enumerate(id_nodes):
-            if i in (id_nodes[0], id_nodes[-1]):
+            if not bound_nodes_with_hrs and i in (id_nodes[0], id_nodes[-1]):
                 weights[j,0::2] = weights_lrs[j]
             else:
-                weights[j, 0:] = weights_hrs[i]
+                weights[j,:] = weights_hrs[i]
 
         self.sparse_weights = sparse.csr_matrix(weights)
         self.x = x
@@ -161,6 +163,6 @@ class GradientHRS(Operation):
     def normalize(p, u, d):
         eps = 1e-9
         den = d - u
-        #den[den == 0] = eps
-        den[np.absolute(den) < eps] = eps
+        den[den == 0] = eps
+        #den[np.absolute(den) < eps] = eps
         return (p - u) / den

@@ -28,8 +28,8 @@ class TestOperationGradientHRS(TestCase):
 
     def test_hrs_1(self):
         operator = GradientHRS(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2)
-        df_calc = operator(self.f3, np.ones_like(self.f3))
-        self.subtests(self.df3, df_calc, places=1)
+        df_calc = operator(self.f2, np.ones_like(self.f2))
+        self.subtests(self.df2, df_calc, places=6)
 
     def test_hrs_2(self):
         operator = GradientHRS(self.x, scheme=SchemeM1FDMEnum.CENTRAL_N2)
