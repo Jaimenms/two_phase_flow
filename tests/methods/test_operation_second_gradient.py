@@ -27,4 +27,4 @@ class TestOperationSecondGradient(TestCase):
     def test_central_n4_2(self):
         operator = SecondGradient(self.xs, scheme=SchemeM2FDMEnum.CENTRAL_N4)
         df_calc = operator(self.fs)
-        self.subtests(self.d2fs, df_calc, places=3)
+        self.subtests(self.d2fs, df_calc, places=1)

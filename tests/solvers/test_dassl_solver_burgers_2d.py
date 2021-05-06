@@ -1,6 +1,6 @@
 from unittest import TestCase
 from solvers.dassl_solver import DasslSolver
-from models.burgers_2d import Burgers
+from models.burgers_2d import Burgers2D
 import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ class TestDasslSolverBurgers2D(TestCase):
 
     def case(self):
 
-        N = 10
+        N = 25
 
         #t0 = np.linspace(0, 0.158, 2)
         t0 = np.linspace(0, 0.5, 10)
@@ -24,7 +24,7 @@ class TestDasslSolverBurgers2D(TestCase):
         U[(X1 + 0.2)**2 + (X2 + 0.2)**2 <=0.4] = 1.0
 
         y0 = np.concatenate((U, ), axis=None)
-        model = Burgers(x1, x2, scheme=SchemeM1FDMEnum.CENTRAL_N4, flux_delimiter=FluxDelimiterEnum.CUBISTA2)
+        model = Burgers2D(x1, x2, scheme=SchemeM1FDMEnum.CENTRAL_N4, flux_delimiter=FluxDelimiterEnum.SMART2)
 
         return t0, y0, x1, x2, X1, X2, model
 
@@ -45,7 +45,7 @@ class TestDasslSolverBurgers2D(TestCase):
 
         t0, y0, x1, x2, X1, X2, model = self.case()
 
-        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-2, atol=1e-2)
+        t, y, yp = DasslSolver.run(model, t0, y0, display=True, rtol=1e-3, atol=1e-3)
 
         if plot:
             self.plot_result(t, x1, x2, y)
