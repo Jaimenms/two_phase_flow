@@ -1,7 +1,7 @@
 from unittest import TestCase
 from methods.fdm.adaptative_grid import AdaptativeGrid
 import numpy as np
-from models.model.model_parameter import ModelParameter
+from models.model.parameter import Parameter
 from solvers.dassl_solver import DasslSolver
 from models.burgers import Burgers
 from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
@@ -31,8 +31,8 @@ class TestAdaptativeGrid(TestCase):
         xi = 0.2
         N = 50
 
-        lb = ModelParameter("lb", vL, "m/s")
-        ub = ModelParameter("ub", vR, "m/s")
+        lb = Parameter("lb", vL, "m/s")
+        ub = Parameter("ub", vR, "m/s")
 
         t0 = np.linspace(0, 0.2, 2)
         tgrid = np.linspace(t0[0], t0[-1], 10)

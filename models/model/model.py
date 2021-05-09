@@ -2,10 +2,9 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import Tuple, Union
 from pint import UnitRegistry
-from models.model.model_domain import ModelDomain
-from models.model.model_variable import ModelVariable, ModelRegionEnum
-from models.model.model_parameter import ModelParameter
-from models.model.model_constant import ModelConstant
+from models.model.domain import Domain
+from models.model.variable import RegionEnum
+import matplotlib.pyplot as plt
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -17,18 +16,17 @@ class Model(ABC):
 
     def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
-        if self.iter is None:
-            self.iter = 0
-        else:
-            new_iter = np.count_nonzero(par.solver_t <= t)
-            if new_iter > self.iter:
-                self.iter = new_iter
-                print("{}/{}".format(self.iter, len(par.solver_t)))
-
         return self.residue(t, y, yp, par)
 
+    def ss_residue(self, y):
+
+        res, _ = self.residue(0, y, np.zeros_like(y))
+        print("res: {}".format(np.sum(res**2)))
+
+        return res
+
     @abstractmethod
-    def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None) -> Tuple[np.array, int]:
+    def residue(self, t: Union[None,float], y: np.ndarray, yp: np.ndarray, par=None) -> Tuple[np.array, int]:
         pass
 
     def jacobian(self, t: float, y: np.ndarray, yp: np.ndarray, par=None) -> Union[None, Tuple[np.array, int]]:
@@ -45,48 +43,39 @@ class Model(ABC):
 
     def __init__(self):
         self.domains = dict()
-        self.constants = dict()
         self.parameters = dict()
         self.variables = dict()
-        self._offset = 0
 
-    def register_domain(self, input: ModelDomain):
+    def register_domain(self, input: Domain):
         self.domains[input.name] = input
 
-    def register_domains(self, input: Tuple[ModelDomain,...]):
+    def register_domains(self, input: Tuple[Domain, ...]):
         for val in input:
             self.register_domain(val)
 
-    def register_variable(self, input: ModelVariable):
-        input.offset = self._offset
-        self._offset += input.size
-        self.variables[input.name] = input
-
-    def register_variables(self, input: Tuple[ModelVariable,...]):
-        for val in input:
-            self.register_variable(val)
-
-    def register_parameter(self, input: ModelParameter):
-        self.parameters[input.name] = input
-
-    def register_parameters(self, input: Tuple[ModelParameter,...]):
-        for val in input:
-            self.register_parameter(val)
-
-    def register_constant(self, input: ModelConstant):
-        self.constants[input.name] = input
-
-    def register_constants(self, input: Tuple[ModelConstant,...]):
-        for val in input:
-            self.register_constant(val)
-
-    def parse(self, name, y: np.ndarray):
-        variable = self.variables[name]
-        ini = variable.offset
-        fini = variable.offset + variable.size
-        return np.reshape(y[ini:fini], newshape=variable.shape)
-
     @staticmethod
-    def apply_regions(value: np.ndarray, regions: Tuple[ModelRegionEnum, ...]):
+    def apply_regions(value: np.ndarray, regions: Tuple[RegionEnum, ...]):
         slices = tuple([region.value for region in regions])
         return value[slices]
+
+    def plot_result(self, t, y):
+
+        x = self.domains["x"]()
+
+        y0 = y[0]
+
+        for i, ti in enumerate(t):
+            if i > 0:
+                yi = y[i]
+                keys = list(self.variables.keys())
+                fig, axs = plt.subplots(len(keys))
+                for j, var in enumerate(keys):
+                    yj = self.variables[var].parse(yi)
+                    y0j = self.variables[var].parse(y0)
+                    axs[j].plot(x, y0j, "k-")
+                    axs[j].plot(x, yj, "bo-")
+                    axs[j].set_ylabel(var)
+                    axs[j].set_xlabel('distance')
+                    axs[j].legend(["t={}".format(t[0]), "t={}".format(t[i])])
+
+        plt.show()

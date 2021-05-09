@@ -6,7 +6,7 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
-from models.model.model_parameter import ModelParameter
+from models.model.parameter import Parameter
 
 
 class TestDasslSolverBurgers(TestCase):
@@ -26,8 +26,8 @@ class TestDasslSolverBurgers(TestCase):
         y0 = np.where(x < xi, vL, y0)
         y0 = np.where(x >= xi, vR, y0)
 
-        lb = ModelParameter("lb", vL, "m/s")
-        ub = ModelParameter("ub", vR, "m/s")
+        lb = Parameter("lb", vL, "m/s")
+        ub = Parameter("ub", vR, "m/s")
 
         model = Burgers(x, lb=lb, ub=ub, scheme=SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter=FluxDelimiterEnum.CUBISTA2)
         model.Parameters.y_LB = vL
@@ -45,8 +45,8 @@ class TestDasslSolverBurgers(TestCase):
 
         #lb = ModelParameter("lb", 0.0, "m/s")
         #ub = ModelParameter("ub", 0.0, "m/s")
-        lb = ModelParameter("lb", None, "m/s")
-        ub = ModelParameter("ub", None, "m/s")
+        lb = Parameter("lb", None, "m/s")
+        ub = Parameter("ub", None, "m/s")
 
         model = Burgers(x, lb=lb, ub=ub, scheme=SchemeM1FDMEnum.CENTRAL_N4, flux_delimiter=FluxDelimiterEnum.SMART2)
 

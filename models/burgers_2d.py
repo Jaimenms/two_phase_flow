@@ -4,8 +4,8 @@ from methods.fdm.operations.gradient_hrs import GradientHRS
 from methods.fdm.operations.second_gradient import SecondGradient
 from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
 from methods.fdm.schemes.scheme_m2_fdm_enum import SchemeM2FDMEnum
-from models.model.model_domain import ModelDomain
-from models.model.model_variable import ModelVariable, ModelRegionEnum
+from models.model.domain import Domain
+from models.model.variable import Variable, RegionEnum
 from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 
 
@@ -16,8 +16,8 @@ class Burgers2D(Model,):
     def __init__(self, x1, x2, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2):
         super().__init__()
 
-        self.x1 = ModelDomain("x1", value=x1, unit="m", description="x1 coordinate")
-        self.x2 = ModelDomain("x2", value=x2, unit="m", description="x2 coordinate")
+        self.x1 = Domain("x1", value=x1, unit="m", description="x1 coordinate")
+        self.x2 = Domain("x2", value=x2, unit="m", description="x2 coordinate")
 
         # Register all domains
         self.register_domain(self.x1)
@@ -30,7 +30,7 @@ class Burgers2D(Model,):
         # self.register_parameter()
 
         # Register all variables
-        self.u = ModelVariable("u-velocity", domains=(self.domains['x1'], self.domains['x2']))
+        self.u = Variable("u-velocity", domains=(self.domains['x1'], self.domains['x2']))
         self.register_variable(self.u)
 
         # Operators
@@ -46,12 +46,12 @@ class Burgers2D(Model,):
 
         res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u)
 
-        res_u = self.apply_regions(res_u, regions=(ModelRegionEnum.OPEN_OPEN, ModelRegionEnum.OPEN_OPEN))
+        res_u = self.apply_regions(res_u, regions=(RegionEnum.OPEN_OPEN, RegionEnum.OPEN_OPEN))
 
-        lb_x1 = self.apply_regions(u, regions=(ModelRegionEnum.LOWER, ModelRegionEnum.ALL)) - 0.0
-        ub_x1 = self.apply_regions(u, regions=(ModelRegionEnum.UPPER, ModelRegionEnum.ALL)) - 0.0
-        lb_x2 = self.apply_regions(u, regions=(ModelRegionEnum.OPEN_OPEN, ModelRegionEnum.LOWER)) - 0.0
-        ub_x2 = self.apply_regions(u, regions=(ModelRegionEnum.OPEN_OPEN, ModelRegionEnum.UPPER)) - 0.0
+        lb_x1 = self.apply_regions(u, regions=(RegionEnum.LOWER, RegionEnum.ALL)) - 0.0
+        ub_x1 = self.apply_regions(u, regions=(RegionEnum.UPPER, RegionEnum.ALL)) - 0.0
+        lb_x2 = self.apply_regions(u, regions=(RegionEnum.OPEN_OPEN, RegionEnum.LOWER)) - 0.0
+        ub_x2 = self.apply_regions(u, regions=(RegionEnum.OPEN_OPEN, RegionEnum.UPPER)) - 0.0
 
         res = np.concatenate((res_u, lb_x1, ub_x1, lb_x2, ub_x2), axis=None)
 

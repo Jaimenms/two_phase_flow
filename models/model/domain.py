@@ -1,10 +1,11 @@
 import numpy as np
 from pint import UnitRegistry
+from typing import Tuple, Dict
 
 ureg = UnitRegistry()
 
 
-class ModelDomain:
+class Domain:
 
     def __init__(self, name, value: np.ndarray = None, unit="", description=""):
 
@@ -19,7 +20,7 @@ class ModelDomain:
         self.description = description
         self.length=len(value)
 
-    def __get__(self):
+    def __call__(self):
         return self.base_value
 
     def __getitem__(self, index):
@@ -27,3 +28,20 @@ class ModelDomain:
 
     def __len__(self):
         return self.length
+
+
+class Domains:
+
+    def __init__(self, domains: Tuple[Domain, ...] = ()):
+        self._offset = 0
+        _domains = {}
+        for domain in domains:
+            _domains[domain.name] = domain
+
+        self.domains = _domains
+
+    def __get__(self) -> Dict[str, Domain]:
+        return self.domains
+
+    def __getitem__(self, key) -> Domain:
+        return self.domains[key]

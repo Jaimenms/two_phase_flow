@@ -2,7 +2,8 @@ from unittest import TestCase
 from models.burgers import Burgers
 import numpy as np
 from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
-from models.model.model_parameter import ModelParameter
+from models.model.parameter import Parameter
+
 
 class TestBurgers(TestCase):
 
@@ -13,8 +14,8 @@ class TestBurgers(TestCase):
         y = np.zeros(100)
         yp = np.zeros(100)
 
-        lb = ModelParameter("lb", 0.0, "m/s")
-        ub = ModelParameter("ub", 0.0, "m/s")
+        lb = Parameter("lb", 0.0, "m/s")
+        ub = Parameter("ub", 0.0, "m/s")
 
         m = Burgers(x, lb=lb, ub=ub, flux_delimiter=FluxDelimiterEnum.SMART)
         res, ires = m(t[0], y, yp)
