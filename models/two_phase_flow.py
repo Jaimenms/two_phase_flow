@@ -22,7 +22,6 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
             scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
             flux_delimiter=FluxDelimiterEnum.CUBISTA,
     ):
-        super().__init__()
 
         self.domains = Domains((x_domain,))
 

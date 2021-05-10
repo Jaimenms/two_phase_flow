@@ -18,7 +18,6 @@ class ShallowWater(Model, ModelPlotMixin):
                  scheme_hrs: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2,
                  flux_delimiter=FluxDelimiterEnum.CUBISTA2,
                  ):
-        super().__init__()
 
         v = Variable("v", domains=(x_domain,), unit="m/s")
         h = Variable("h", domains=(x_domain,), unit="m")

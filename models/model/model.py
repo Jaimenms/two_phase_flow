@@ -18,12 +18,6 @@ class Model(ABC):
 
     jacobian = None
 
-    def __init__(self):
-
-        self.parameters = Parameters()
-        self.domains = Domains()
-        self.variables = Variables()
-
     def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
         return self.residue(t, y, yp, par)
@@ -41,15 +35,3 @@ class Model(ABC):
 
     class Parameters:
         pass
-
-    def register_domain(self, input: Domain):
-        self.domains[input.name] = input
-
-    def register_domains(self, input: Tuple[Domain, ...]):
-        for val in input:
-            self.register_domain(val)
-
-    @staticmethod
-    def apply_regions(value: np.ndarray, regions: Tuple[RegionEnum, ...]):
-        slices = tuple([region.value for region in regions])
-        return value[slices]

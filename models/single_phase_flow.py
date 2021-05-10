@@ -21,7 +21,6 @@ class SinglePhaseFlow(Model, ModelPlotMixin):
              scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
              flux_delimiter=FluxDelimiterEnum.CUBISTA,
     ):
-        super().__init__()
 
         self.domains = Domains((x_domain,))
 
@@ -44,7 +43,6 @@ class SinglePhaseFlow(Model, ModelPlotMixin):
         # Operators
         self.grad_x_hrs = GradientHRS(self.domains["x"], axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
         self.grad_x = Gradient(self.domains["x"], axis=0, scheme=scheme)
-
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 

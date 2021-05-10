@@ -18,7 +18,6 @@ class Burgers(Model, ModelPlotMixin):
                  scheme_secondorder: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
                  flux_delimiter=FluxDelimiterEnum.CUBISTA,
                  ):
-        super().__init__()
 
         u = Variable(name="u", unit="m/s", domains=(x_domain,))
         self.variables = Variables((u,))

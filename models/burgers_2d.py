@@ -20,7 +20,6 @@ class Burgers2D(Model, ModelPlotMixin):
             scheme_second: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
             flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2
         ):
-        super().__init__()
 
         self.domains = Domains((x1_domain, x2_domain))
 
