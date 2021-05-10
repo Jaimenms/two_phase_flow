@@ -45,7 +45,6 @@ class ShallowWater(Model):
         res_1 = dvdt + 0.5 * self.grad_hrs_x(v**2, v) + 9.81 * self.grad_x(h)
         res_2 = dhdt + self.grad_hrs_x(v*h, v)
 
-
         eq1 = Equation(res_1, regions=(RegionEnum.OPEN_OPEN,))
         eq2 = Equation(res_2, regions=(RegionEnum.CLOSED_CLOSED,))
 

@@ -43,10 +43,8 @@ class TestDasslSolverBurgers(TestCase):
         x = np.linspace(0, 1., N)
         y0 = +(np.sin(2*3.1415*x) + np.sin(3.1415*x)/2)
 
-        #lb = ModelParameter("lb", 0.0, "m/s")
-        #ub = ModelParameter("ub", 0.0, "m/s")
-        lb = Parameter("lb", None, "m/s")
-        ub = Parameter("ub", None, "m/s")
+        lb = ModelParameter("lb", 0.0, "m/s")
+        ub = ModelParameter("ub", 0.0, "m/s")
 
         model = Burgers(x, lb=lb, ub=ub, scheme=SchemeM1FDMEnum.CENTRAL_N4, flux_delimiter=FluxDelimiterEnum.SMART2)
 

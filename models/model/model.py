@@ -70,12 +70,17 @@ class Model(ABC):
                 keys = list(self.variables.keys())
                 fig, axs = plt.subplots(len(keys))
                 for j, var in enumerate(keys):
+                    if len(keys) == 1:
+                        axsj = axs
+                    else:
+                        axsj = axs[j]
+
                     yj = self.variables[var].parse(yi)
                     y0j = self.variables[var].parse(y0)
-                    axs[j].plot(x, y0j, "k-")
-                    axs[j].plot(x, yj, "bo-")
-                    axs[j].set_ylabel(var)
-                    axs[j].set_xlabel('distance')
-                    axs[j].legend(["t={}".format(t[0]), "t={}".format(t[i])])
+                    axsj.plot(x, y0j, "k-")
+                    axsj.plot(x, yj, "bo-")
+                    axsj.set_ylabel(var)
+                    axsj.set_xlabel('distance')
+                    axsj.legend(["t={}".format(t[0]), "t={}".format(t[i])])
 
         plt.show()

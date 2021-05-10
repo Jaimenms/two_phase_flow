@@ -54,4 +54,4 @@ class TestShallowWater(TestCase):
         if plot:
             m.plot_result(t, y)
         else:
-            self.assertAlmostEqual(y[-1,0], qi)
+            self.assertAlmostEqual(y[-1,0], v0[0])
