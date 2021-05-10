@@ -2,34 +2,33 @@ import numpy as np
 
 from methods.fdm.operations.gradient import Gradient
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
-from models.model.model import Model, Domains, Variables, Parameters
+from models.model.domain import Domain
+from models.model.equation import Equation, Equations, BoundaryConditionEnum, BoundaryCondition
+from models.model.model import Model, Domains
 from models.model.model_plot_mixin import ModelPlotMixin
-from models.model.domain import Domains
-from models.model.equation import Equation, Equations
-from models.model.variable import RegionEnum, Variables
 from models.model.parameter import Parameters
-from models.model.boundary_condition import BoundaryCondition, BoundaryConditionEnum
+from models.model.variable import RegionEnum, Variables, Variable
 
 
 class ShallowWater(Model, ModelPlotMixin):
 
     def __init__(self,
-                 domains: Domains = Domains(),
-                 variables: Variables = Variables(),
-                 parameters: Parameters = Parameters(),
+                 x_domain: Domain,
                  scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N8,
                  scheme_hrs: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2,
                  flux_delimiter=FluxDelimiterEnum.CUBISTA2,
                  ):
-        super().__init__(domains=domains, parameters=parameters, variables=variables)
+        super().__init__()
 
-        self.parameters = parameters
-        self.domains = domains
-        self.variables = variables
+        v = Variable("v", domains=(x_domain,), unit="m/s")
+        h = Variable("h", domains=(x_domain,), unit="m")
+        self.variables = Variables((v,h))
+        self.parameters = Parameters()
+        self.domains = Domains((x_domain,))
 
         # Operators
-        self.grad_hrs_x = GradientHRS(self.domains["x"](), axis=0, scheme=scheme_hrs, flux_delimiter=flux_delimiter)
-        self.grad_x = Gradient(self.domains["x"](), axis=0, scheme=scheme)
+        self.grad_hrs_x = GradientHRS(self.domains["x"], axis=0, scheme=scheme_hrs, flux_delimiter=flux_delimiter)
+        self.grad_x = Gradient(self.domains["x"], axis=0, scheme=scheme)
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 

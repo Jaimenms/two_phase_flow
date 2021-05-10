@@ -9,18 +9,10 @@ ureg = UnitRegistry()
 
 class Parameter(ABC):
 
-    def __init__(self, name: str, value: Union[float, np.ndarray]=None, unit: str="", tspan= None, description=""):
-
-        if value is None:
-            eng_value = None
-            self.base_value = None
-            self.base_unit = None
-        else:
-            eng_value = value * ureg(unit)
-            self.base_value = eng_value.to_base_units().magnitude
-            self.base_unit = str(eng_value.to_base_units().units)
+    def __init__(self, name: str, unit: str="", description=""):
+        self._value = None
+        self._unit = str(ureg(unit).to_base_units().units)
         self.name = name
-        self.eng_value = eng_value
         self.description = description
 
     @abstractmethod
@@ -30,21 +22,56 @@ class Parameter(ABC):
 
 class TimeDependentParameter(Parameter):
 
-    def __init__(self, name: str, value: Union[None, float, np.ndarray], unit: str, description="", tspan= None):
-        super().__init__(name, value, unit, description, tspan)
-        self.f = interpolate.interp1d(tspan, self.base_value)
+    def __init__(self, name: str, unit: str, description=""):
+        super().__init__(name, unit, description)
+
+    @property
+    def value(self):
+        if self._value is None:
+            raise ValueError("Sorry but the parameter value is not defined.")
+        return self._value
+
+    def set(self, time_span: np.ndarray, value_span: np.ndarray, time_unit: str="", value_unit: str=""):
+
+        value_base_unit = str(ureg(value_unit).to_base_units().units)
+
+        if self._unit != value_base_unit:
+            raise ValueError("Sorry but the parameter unit is not consistent")
+
+        time_span = time_span * ureg(time_unit).to_base_units().magnitude
+        value_span = value_span * ureg(value_unit).to_base_units().magnitude
+
+        self._value = interpolate.interp1d(time_span, value_span)
 
     def __call__(self, t=None) -> Union[float, np.ndarray]:
-        return self.f(t)
+        return self._value(t)
 
 
 class ConstantParameter(Parameter):
 
-    def __init__(self, name: str, value: Union[None, float, np.ndarray], unit: str, description=""):
-        super().__init__(name, value, unit, description)
+    def __init__(self, name: str, unit: str, description=""):
+        super().__init__(name, unit, description)
+
+    @property
+    def value(self):
+        if self._value is None:
+            raise ValueError("Sorry but the parameter value is not defined.")
+        return self._value
+
+    def set(self, new_value: Union[float, np.ndarray], value_unit: str= ""):
+
+        value_base_unit = str(ureg(value_unit).to_base_units().units)
+
+        if self._unit != value_base_unit:
+            raise ValueError("Sorry but the parameter unit is not consistent")
+
+        self._value = new_value * ureg(value_unit).to_base_units().magnitude
+
+    def __get__(self):
+        return self._value
 
     def __call__(self, t=None) -> Union[float, np.ndarray]:
-        return self.base_value
+        return self._value
 
 
 class Parameters:
@@ -62,5 +89,8 @@ class Parameters:
 
     def __getitem__(self, key) -> Parameter:
         return self.parameters[key]
+
+    def keys(self):
+        return self.parameters.keys()
 
 

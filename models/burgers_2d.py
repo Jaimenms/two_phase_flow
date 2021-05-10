@@ -2,35 +2,41 @@ import numpy as np
 
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
 from methods.fdm.operations.second_gradient import SecondGradient, SchemeM2FDMEnum
+from models.model.domain import Domain
+from models.model.equation import Equation, Equations, BoundaryConditionEnum, BoundaryCondition
 from models.model.model import Model, Domains, Variables, Parameters
-from models.model.equation import Equation, Equations
-from models.model.variable import RegionEnum
-from models.model.boundary_condition import BoundaryCondition, BoundaryConditionEnum
 from models.model.model_plot_mixin import ModelPlotMixin
+from models.model.parameter import ConstantParameter
+from models.model.variable import RegionEnum, Variable
 
 
 class Burgers2D(Model, ModelPlotMixin):
 
     def __init__(
             self,
-             domains: Domains = Domains(),
-             variables: Variables = Variables(),
-             parameters: Parameters = Parameters(),
-             scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N4,
-             scheme_second: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
-             flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2
+            x1_domain: Domain,
+            x2_domain: Domain,
+            scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N4,
+            scheme_second: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
+            flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2
         ):
-        super().__init__(domains=domains, parameters=parameters, variables=variables)
+        super().__init__()
 
-        self.parameters = parameters
-        self.domains = domains
-        self.variables = variables
+        self.domains = Domains((x1_domain, x2_domain))
+
+        u = Variable(name="u", unit="m/s", domains=(x1_domain, x2_domain))
+        self.variables = Variables((u,))
+
+        visc = ConstantParameter(name='visc', unit="m**2/s")
+        lb = ConstantParameter(name='lb', unit="m/s")
+        ub = ConstantParameter(name='ub', unit="m/s")
+        self.parameters = Parameters((visc, lb, ub))
 
         # Operators
-        self.grad_x1 = GradientHRS(self.domains["x1"](), axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad_x2 = GradientHRS(self.domains["x2"](), axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad2_x1 = SecondGradient(self.domains["x1"](), axis=0, scheme=scheme_second,)
-        self.grad2_x2 = SecondGradient(self.domains["x2"](), axis=1, scheme=scheme_second,)
+        self.grad_x1 = GradientHRS(self.domains["x1"], axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x2 = GradientHRS(self.domains["x2"], axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad2_x1 = SecondGradient(self.domains["x1"], axis=0, scheme=scheme_second,)
+        self.grad2_x2 = SecondGradient(self.domains["x2"], axis=1, scheme=scheme_second,)
 
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
@@ -39,7 +45,7 @@ class Burgers2D(Model, ModelPlotMixin):
         dudt = self.variables["u"].parse(yp)
         visc = self.parameters['visc']()
 
-        res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u) + visc*(self.grad2_x1(u) + self.grad2_x2(u))
+        res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u) - visc*(self.grad2_x1(u) + self.grad2_x2(u))
 
         eq1 = Equation(res_u, regions=(RegionEnum.OPEN_OPEN,RegionEnum.OPEN_OPEN,))
 

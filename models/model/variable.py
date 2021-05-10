@@ -24,11 +24,13 @@ class RegionEnum(Enum):
 
 class Variable:
 
-    def __init__(self, name, value: np.ndarray = None, unit: str = "", domains: Tuple[Domain, ...] = (), description=""):
+    def __init__(self, name, unit: str = "", domains: Tuple[Domain, ...] = (), description=""):
 
         self.name = name
         self.domains = domains
         self.description = description
+        self._value = None
+        self._unit = str(ureg(unit).to_base_units().units)
         self.shape = tuple([len(domain) for domain in domains])
         self.offset = 0
 
@@ -37,18 +39,22 @@ class Variable:
             size *= ele
         self.size = size
 
-        if value is None:
-            eng_value = None
-            self.base_value = None
-            self.base_unit = None
-        else:
-            eng_value = value * ureg(unit)
-            self.base_value = eng_value.to_base_units().magnitude
-            self.base_unit = str(eng_value.to_base_units().units)
-        self.eng_value = eng_value
-
     def register(self, offset):
         self.offset = offset
+
+    @property
+    def value(self):
+        if self._value is None:
+            raise ValueError("Sorry but the parameter value is not defined.")
+        return self._value
+
+    def set_ic(self, value: Union[float, np.ndarray], unit: str= ""):
+
+        value_base_unit = str(ureg(unit).to_base_units().units)
+
+        if self._unit != value_base_unit:
+            raise ValueError("Sorry but the parameter unit is not consistent")
+        self._value = value * ureg(unit).to_base_units().magnitude
 
     def parse(self, y: np.ndarray) -> np.ndarray:
         ini = self.offset
@@ -56,7 +62,7 @@ class Variable:
         return np.reshape(y[ini:fini], newshape=self.shape)
 
     def __call__(self) -> np.ndarray:
-        return self.base_value
+        return self._value
 
 
 class Variables:
@@ -78,7 +84,7 @@ class Variables:
     def keys(self):
         return self.variables.keys()
 
-    def read(self):
+    def get_ic_array(self):
         return np.concatenate([val().flatten() for val in self.variables.values()], axis=None)
 
     def parse(self, y):

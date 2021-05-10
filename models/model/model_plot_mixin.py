@@ -1,8 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from models.model.domain import Domains
+from models.model.variable import Variables
 
 
 class ModelPlotMixin:
+
+    domains = Domains()
+    variables = Variables()
 
     def plot_result(self, t, y):
 
@@ -14,7 +19,7 @@ class ModelPlotMixin:
 
             y0 = y[0]
 
-            x = self.domains[x_key]()
+            x = self.domains[x_key]
 
             for i, ti in enumerate(t):
                 if i > 0:
@@ -39,8 +44,8 @@ class ModelPlotMixin:
 
             x_keys = list(self.domains.keys())
 
-            x1 = self.domains[x_keys[0]]()
-            x2 = self.domains[x_keys[1]]()
+            x1 = self.domains[x_keys[0]]
+            x2 = self.domains[x_keys[1]]
             X1, X2 = np.meshgrid(x1, x2, indexing="ij")
 
             for i, ti in enumerate(t):

@@ -18,15 +18,11 @@ class Model(ABC):
 
     jacobian = None
 
-    def __init__(self,
-                 domains: Domains = Domains(),
-                 variables: Variables = Variables(),
-                 parameters: Parameters = Parameters(),
-                 ):
+    def __init__(self):
 
-        self.parameters = parameters
-        self.domains = domains
-        self.variables = variables
+        self.parameters = Parameters()
+        self.domains = Domains()
+        self.variables = Variables()
 
     def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 

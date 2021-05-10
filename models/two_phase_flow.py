@@ -2,35 +2,55 @@ import numpy as np
 
 from methods.fdm.operations.gradient import Gradient
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
+from models.model.domain import Domain
+from models.model.equation import Equation, Equations, BoundaryConditionEnum, BoundaryCondition
 from models.model.model import Model, Domains, Variables, Parameters
 from models.model.model_plot_mixin import ModelPlotMixin
-from models.model.equation import Equation, Equations
+from models.model.parameter import TimeDependentParameter, ConstantParameter
 from models.model.variable import RegionEnum
-from models.model.boundary_condition import BoundaryCondition, BoundaryConditionEnum
+from models.model.variable import Variable
 from models.toolbox.dimensionless import Dimensionless
-from models.toolbox.hydraulics import Hydraulics
 from models.toolbox.geometry import Geometry
+from models.toolbox.hydraulics import Hydraulics
 
 
 class TwoPhaseFlow(Model, ModelPlotMixin):
 
     def __init__(
             self,
-            domains: Domains = Domains(),
-            variables: Variables = Variables(),
-            parameters: Parameters = Parameters(),
+            x_domain: Domain,
             scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
             flux_delimiter=FluxDelimiterEnum.CUBISTA,
     ):
-        super().__init__(domains=domains, parameters=parameters, variables=variables)
+        super().__init__()
 
-        self.parameters = parameters
-        self.domains = domains
-        self.variables = variables
+        self.domains = Domains((x_domain,))
+
+        qL = Variable("qL", domains=(x_domain,), unit="kg/s")
+        qG = Variable("qG", domains=(x_domain,), unit="kg/s")
+        alphaL = Variable("alphaL", domains=(x_domain,), unit="")
+        P = Variable("P", domains=(x_domain,), unit="Pa")
+        self.variables = Variables((qL, qG, alphaL, P))
+
+        D = ConstantParameter('D', "in")
+        epw = ConstantParameter('epw', "um")
+        g = ConstantParameter('g', "m/s**2")
+        rhoL = ConstantParameter('rhoL', "kg/m**3")
+        muL = ConstantParameter('muL', "Pa*s")
+        drhoLdP = ConstantParameter('drhoLdP', "kg/m**3/Pa")
+        rhoG = ConstantParameter('rhoG', "kg/m**3")
+        muG = ConstantParameter('muG', "Pa*s")
+        drhoGdP = ConstantParameter('drhoGdP', "kg/m**3/Pa")
+        z = ConstantParameter('z', "m")
+        qL_lb = TimeDependentParameter('qL_lb', "kg/s")
+        qG_lb = TimeDependentParameter('qG_lb', "kg/s")
+        P_ub = TimeDependentParameter('P_ub', "Pa")
+
+        self.parameters = Parameters((D, epw, g, rhoL, muL, drhoLdP, rhoG, muG, drhoGdP, z, qL_lb, qG_lb, P_ub))
 
         # Operators
-        self.grad_x_hrs = GradientHRS(self.domains["x"](), axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad_x = Gradient(self.domains["x"](), axis=0, scheme=scheme)
+        self.grad_x_hrs = GradientHRS(self.domains["x"], axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x = Gradient(self.domains["x"], axis=0, scheme=scheme)
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 

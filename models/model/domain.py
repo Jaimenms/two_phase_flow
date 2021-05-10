@@ -20,7 +20,7 @@ class Domain:
         self.description = description
         self.length=len(value)
 
-    def __call__(self):
+    def __get__(self):
         return self.base_value
 
     def __getitem__(self, index):
