@@ -3,8 +3,10 @@ import numpy as np
 from typing import Tuple, Union
 from pint import UnitRegistry
 from models.model.domain import Domain
-from models.model.variable import RegionEnum
-import matplotlib.pyplot as plt
+from models.model.domain import Domains
+from models.model.variable import RegionEnum, Variables
+from models.model.parameter import Parameters
+
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -13,6 +15,18 @@ Q_ = ureg.Quantity
 class Model(ABC):
 
     iter = None
+
+    jacobian = None
+
+    def __init__(self,
+                 domains: Domains = Domains(),
+                 variables: Variables = Variables(),
+                 parameters: Parameters = Parameters(),
+                 ):
+
+        self.parameters = parameters
+        self.domains = domains
+        self.variables = variables
 
     def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
@@ -29,22 +43,8 @@ class Model(ABC):
     def residue(self, t: Union[None,float], y: np.ndarray, yp: np.ndarray, par=None) -> Tuple[np.array, int]:
         pass
 
-    def jacobian(self, t: float, y: np.ndarray, yp: np.ndarray, par=None) -> Union[None, Tuple[np.array, int]]:
-        return None
-
-    @staticmethod
-    @abstractmethod
-    def str_equation(self) -> str:
-        pass
-
     class Parameters:
         pass
-
-
-    def __init__(self):
-        self.domains = dict()
-        self.parameters = dict()
-        self.variables = dict()
 
     def register_domain(self, input: Domain):
         self.domains[input.name] = input
@@ -57,30 +57,3 @@ class Model(ABC):
     def apply_regions(value: np.ndarray, regions: Tuple[RegionEnum, ...]):
         slices = tuple([region.value for region in regions])
         return value[slices]
-
-    def plot_result(self, t, y):
-
-        x = self.domains["x"]()
-
-        y0 = y[0]
-
-        for i, ti in enumerate(t):
-            if i > 0:
-                yi = y[i]
-                keys = list(self.variables.keys())
-                fig, axs = plt.subplots(len(keys))
-                for j, var in enumerate(keys):
-                    if len(keys) == 1:
-                        axsj = axs
-                    else:
-                        axsj = axs[j]
-
-                    yj = self.variables[var].parse(yi)
-                    y0j = self.variables[var].parse(y0)
-                    axsj.plot(x, y0j, "k-")
-                    axsj.plot(x, yj, "bo-")
-                    axsj.set_ylabel(var)
-                    axsj.set_xlabel('distance')
-                    axsj.legend(["t={}".format(t[0]), "t={}".format(t[i])])
-
-        plt.show()

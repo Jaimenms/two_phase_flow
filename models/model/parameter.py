@@ -24,26 +24,26 @@ class Parameter(ABC):
         self.description = description
 
     @abstractmethod
-    def __call__(self):
+    def __call__(self, t=None):
         pass
 
 
 class TimeDependentParameter(Parameter):
 
-    def __init__(self, name: str, value: Union[float, np.ndarray], unit: str, description="", tspan= None):
+    def __init__(self, name: str, value: Union[None, float, np.ndarray], unit: str, description="", tspan= None):
         super().__init__(name, value, unit, description, tspan)
         self.f = interpolate.interp1d(tspan, self.base_value)
 
-    def __call__(self, t):
+    def __call__(self, t=None) -> Union[float, np.ndarray]:
         return self.f(t)
 
 
 class ConstantParameter(Parameter):
 
-    def __init__(self, name: str, value: Union[float, np.ndarray], unit: str, description=""):
+    def __init__(self, name: str, value: Union[None, float, np.ndarray], unit: str, description=""):
         super().__init__(name, value, unit, description)
 
-    def __call__(self):
+    def __call__(self, t=None) -> Union[float, np.ndarray]:
         return self.base_value
 
 

@@ -1,22 +1,15 @@
-from models.model.model import Model
 import numpy as np
-from methods.fdm.operations.gradient_hrs import GradientHRS
-from methods.fdm.operations.second_gradient import SecondGradient
-from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
-from methods.fdm.schemes.scheme_m2_fdm_enum import SchemeM2FDMEnum
-from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
-from models.model.domain import Domains
-from models.model.equation import Equation, Equations
-from models.model.variable import RegionEnum, Variables
-from models.model.parameter import Parameters
+
+from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
+from methods.fdm.operations.second_gradient import SecondGradient, SchemeM2FDMEnum
+from models.model.model import Model, Domains, Variables, Parameters
+from models.model.model_plot_mixin import ModelPlotMixin
 from models.model.boundary_condition import BoundaryCondition, BoundaryConditionEnum
-from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
+from models.model.variable import RegionEnum
+from models.model.equation import Equation, Equations
 
 
-class Burgers(Model):
-
-    jacobian = None
-    iter = None
+class Burgers(Model, ModelPlotMixin):
 
     def __init__(self,
                  domains: Domains = Domains(),
@@ -26,11 +19,7 @@ class Burgers(Model):
                  scheme_secondorder: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
                  flux_delimiter=FluxDelimiterEnum.CUBISTA,
                  ):
-        super().__init__()
-
-        self.parameters = parameters
-        self.domains = domains
-        self.variables = variables
+        super().__init__(domains=domains, parameters=parameters, variables=variables)
 
         # Operators
         self.grad_x = GradientHRS(self.domains["x"](), axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
@@ -42,10 +31,12 @@ class Burgers(Model):
         u = self.variables["u"].parse(y)
         dudt = self.variables["u"].parse(yp)
 
-        res_u = dudt + 0.5 * self.grad_x(u**2, u) - 0.001*self.grad2_x(y)
-
+        visc = self.parameters['visc']()
         lb = self.parameters['lb']()
         ub = self.parameters['ub']()
+
+        res_u = dudt + 0.5 * self.grad_x(u**2, u) - visc*self.grad2_x(y)
+
 
         eq_list = []
         if lb is not None and ub is not None:
@@ -76,10 +67,3 @@ class Burgers(Model):
         ires = 0
 
         return res, ires
-
-    def str_equation(self):
-
-        return "dv/dt + v*dv/dx = 0"
-
-
-

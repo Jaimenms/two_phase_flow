@@ -14,7 +14,6 @@ class Equation:
         return self.res
 
 
-
 class Equations:
 
     def __init__(self, equations: Tuple[Union[Equation,BoundaryCondition],...] = ()):

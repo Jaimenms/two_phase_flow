@@ -45,3 +45,6 @@ class Domains:
 
     def __getitem__(self, key) -> Domain:
         return self.domains[key]
+
+    def keys(self):
+        return self.domains.keys()

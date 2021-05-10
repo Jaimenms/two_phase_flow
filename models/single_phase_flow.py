@@ -1,25 +1,17 @@
-from models.model.model import Model
 import numpy as np
-from methods.fdm.operations.gradient_hrs import GradientHRS
 from methods.fdm.operations.gradient import Gradient
-from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
-from models.model.domain import Domains
+from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
+from models.model.model import Model, Domains, Variables, Parameters
+from models.model.model_plot_mixin import ModelPlotMixin
 from models.model.equation import Equation, Equations
-from models.model.variable import RegionEnum, Variables
-from models.model.parameter import Parameters
+from models.model.variable import RegionEnum
 from models.model.boundary_condition import BoundaryCondition, BoundaryConditionEnum
-
-from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
-
 from models.toolbox.dimensionless import Dimensionless
 from models.toolbox.hydraulics import Hydraulics
 from models.toolbox.geometry import Geometry
 
 
-class SinglePhaseFlow(Model):
-
-    jacobian = None
-    iter = None
+class SinglePhaseFlow(Model, ModelPlotMixin):
 
     def __init__(
              self,
@@ -28,8 +20,8 @@ class SinglePhaseFlow(Model):
              parameters: Parameters = Parameters(),
              scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
              flux_delimiter=FluxDelimiterEnum.CUBISTA,
-         ):
-        super().__init__()
+    ):
+        super().__init__(domains=domains, parameters=parameters, variables=variables)
 
         self.parameters = parameters
         self.domains = domains
@@ -85,15 +77,3 @@ class SinglePhaseFlow(Model):
         ires = 0
 
         return res, ires
-
-    def str_equation(self):
-
-        return "..."
-
-    class Parameters:
-        y_LB = None
-        y_UB = None
-        pass
-
-
-

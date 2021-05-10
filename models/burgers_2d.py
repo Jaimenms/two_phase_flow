@@ -1,71 +1,57 @@
-from models.model.model import Model
 import numpy as np
-from methods.fdm.operations.gradient_hrs import GradientHRS
-from methods.fdm.operations.second_gradient import SecondGradient
-from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
-from methods.fdm.schemes.scheme_m2_fdm_enum import SchemeM2FDMEnum
-from models.model.domain import Domain
-from models.model.variable import Variable, RegionEnum
-from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
+
+from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
+from methods.fdm.operations.second_gradient import SecondGradient, SchemeM2FDMEnum
+from models.model.model import Model, Domains, Variables, Parameters
+from models.model.equation import Equation, Equations
+from models.model.variable import RegionEnum
+from models.model.boundary_condition import BoundaryCondition, BoundaryConditionEnum
+from models.model.model_plot_mixin import ModelPlotMixin
 
 
-class Burgers2D(Model,):
+class Burgers2D(Model, ModelPlotMixin):
 
-    jacobian = None
+    def __init__(
+            self,
+             domains: Domains = Domains(),
+             variables: Variables = Variables(),
+             parameters: Parameters = Parameters(),
+             scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N4,
+             scheme_second: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
+             flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2
+        ):
+        super().__init__(domains=domains, parameters=parameters, variables=variables)
 
-    def __init__(self, x1, x2, scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2, flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2):
-        super().__init__()
-
-        self.x1 = Domain("x1", value=x1, unit="m", description="x1 coordinate")
-        self.x2 = Domain("x2", value=x2, unit="m", description="x2 coordinate")
-
-        # Register all domains
-        self.register_domain(self.x1)
-        self.register_domain(self.x2)
-
-        # Register all constants
-        # self.register_constant()
-
-        # Register all parameters
-        # self.register_parameter()
-
-        # Register all variables
-        self.u = Variable("u-velocity", domains=(self.domains['x1'], self.domains['x2']))
-        self.register_variable(self.u)
+        self.parameters = parameters
+        self.domains = domains
+        self.variables = variables
 
         # Operators
-        self.grad_x1 = GradientHRS(self.x1.base_value, axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad_x2 = GradientHRS(self.x2.base_value, axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x1 = GradientHRS(self.domains["x1"](), axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x2 = GradientHRS(self.domains["x2"](), axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad2_x1 = SecondGradient(self.domains["x1"](), axis=0, scheme=scheme_second,)
+        self.grad2_x2 = SecondGradient(self.domains["x2"](), axis=1, scheme=scheme_second,)
 
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
-        u = self.parse("u-velocity", y)
+        u = self.variables["u"].parse(y)
+        dudt = self.variables["u"].parse(yp)
+        visc = self.parameters['visc']()
 
-        dudt = self.parse("u-velocity", yp)
+        res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u) + visc*(self.grad2_x1(u) + self.grad2_x2(u))
 
-        res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u)
+        eq1 = Equation(res_u, regions=(RegionEnum.OPEN_OPEN,RegionEnum.OPEN_OPEN,))
 
-        res_u = self.apply_regions(res_u, regions=(RegionEnum.OPEN_OPEN, RegionEnum.OPEN_OPEN))
+        bc1 = BoundaryCondition(u, 0.0, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.LOWER, RegionEnum.ALL), )
+        bc2 = BoundaryCondition(u, 0.0, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.UPPER, RegionEnum.ALL), )
+        bc3 = BoundaryCondition(u, 0.0, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.OPEN_OPEN, RegionEnum.LOWER), )
+        bc4 = BoundaryCondition(u, 0.0, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.OPEN_OPEN, RegionEnum.UPPER), )
 
-        lb_x1 = self.apply_regions(u, regions=(RegionEnum.LOWER, RegionEnum.ALL)) - 0.0
-        ub_x1 = self.apply_regions(u, regions=(RegionEnum.UPPER, RegionEnum.ALL)) - 0.0
-        lb_x2 = self.apply_regions(u, regions=(RegionEnum.OPEN_OPEN, RegionEnum.LOWER)) - 0.0
-        ub_x2 = self.apply_regions(u, regions=(RegionEnum.OPEN_OPEN, RegionEnum.UPPER)) - 0.0
+        eqs = Equations((eq1, bc1, bc2, bc3, bc4, ))
 
-        res = np.concatenate((res_u, lb_x1, ub_x1, lb_x2, ub_x2), axis=None)
+        res = eqs()
 
         ires = 0
 
         return res, ires
-
-    def str_equation(self):
-        return "not defined"
-
-    class Parameters:
-        y_LB = None
-        y_UB = None
-        pass
-
-
-

@@ -16,16 +16,17 @@ class TestBurgers(TestCase):
         t = np.linspace(0, 0.5, 4)
         x = np.linspace(0, 1., N)
 
+        visc = ConstantParameter('visc', 0.001, "m**2/s")
         lb = ConstantParameter('lb', None, "m/s")
         ub = ConstantParameter('ub', None, "m/s")
 
-        parameters = Parameters((lb, ub))
+        parameters = Parameters((visc, lb, ub))
 
         x_domain = Domain("x", value=x, unit="m", description="x1 coordinate")
         domains = Domains((x_domain,))
 
         u0 = np.sin(2*3.1415*x) + np.sin(3.1415*x)/2
-        u = Variable("u", domains=(x_domain,), value=u0, unit="kg/s")
+        u = Variable("u", domains=(x_domain,), value=u0, unit="m/s")
 
         variables = Variables((u,))
 
@@ -56,10 +57,11 @@ class TestBurgers(TestCase):
         xi = 0.2
         x = np.linspace(0, 1., N)
 
+        visc = ConstantParameter('visc', 0.001, "m**2/s")
         lb = ConstantParameter('lb', vL, "m/s")
         ub = ConstantParameter('ub', vR, "m/s")
 
-        parameters = Parameters((lb, ub))
+        parameters = Parameters((visc, lb, ub))
 
         x_domain = Domain("x", value=x, unit="m", description="x1 coordinate")
         domains = Domains((x_domain,))

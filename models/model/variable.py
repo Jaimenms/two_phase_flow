@@ -50,12 +50,12 @@ class Variable:
     def register(self, offset):
         self.offset = offset
 
-    def parse(self, y: np.ndarray):
+    def parse(self, y: np.ndarray) -> np.ndarray:
         ini = self.offset
         fini = ini + self.size
         return np.reshape(y[ini:fini], newshape=self.shape)
 
-    def __call__(self):
+    def __call__(self) -> np.ndarray:
         return self.base_value
 
 
@@ -71,9 +71,6 @@ class Variables:
             _variables[variable.name] = variable
 
         self.variables = _variables
-
-    def __get__(self) -> Dict[str, Variable]:
-        return self.variables
 
     def __getitem__(self, key) -> Variable:
         return self.variables[key]
