@@ -1,5 +1,6 @@
 import numpy as np
 
+from methods.fdm.operations.gradient import Gradient
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
 from models.model.model import Model, Domains, Variables, Parameters
 from models.model.model_plot_mixin import ModelPlotMixin
