@@ -1,12 +1,12 @@
 from unittest import TestCase
-from models.two_phase_flow import TwoPhaseFlow
+from models.two_phase_flow.two_phase_flow import TwoPhaseFlow
 import numpy as np
 from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 from models.model.domain import Domain
 from solvers.dassl_solver import DasslSolver
 
 
-class TestTwoPhaseFlow(TestCase):
+class TestStratifiedTwoPhaseFlow(TestCase):
 
     def test_1(self, plot=True):
 
@@ -39,7 +39,7 @@ class TestTwoPhaseFlow(TestCase):
         m.parameters['rhoG'].set(1, "kg/m**3")
         m.parameters['muG'].set(0.00001, "Pa*s")
         m.parameters['drhoGdP'].set(5e-4, "kg/m**3/Pa")
-        m.parameters['z'].set(np.zeros_like(x), "m")
+        m.parameters['tetha'].set(np.zeros_like(x), "")
         m.parameters['qL_lb'].set(value_span=qLi * np.array([1, 1, 1.01, 1.01]), value_unit="kg/s", time_unit="s", time_span=np.array([0, 1, 3, 10000]))
         m.parameters['qG_lb'].set(value_span=qGi * np.array([1, 1, 1.01, 1.01]), value_unit="kg/s", time_unit="s", time_span=np.array([0, 1, 3, 10000]))
         m.parameters['P_ub'].set(value_span=Pf * np.array([1, 1, 1, 1]), value_unit="Pa", time_unit="s", time_span=np.array([0, 1, 3, 10000]))

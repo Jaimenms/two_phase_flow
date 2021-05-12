@@ -39,27 +39,27 @@ class Burgers(Model, ModelPlotMixin):
         u = self.variables["u"].parse(y)
         dudt = self.variables["u"].parse(yp)
 
-        visc = self.parameters['visc']()
-        lb = self.parameters['lb']()
-        ub = self.parameters['ub']()
+        visc = self.parameters['visc']
+        lb = self.parameters['lb']
+        ub = self.parameters['ub']
 
-        res_u = dudt + 0.5 * self.grad_x(u**2, u) - visc*self.grad2_x(y)
+        res_u = dudt + 0.5 * self.grad_x(u**2, u) - visc()*self.grad2_x(y)
 
         eq_list = []
         if lb is not None and ub is not None:
-            bc1 = BoundaryCondition(u, lb, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.LOWER,),)
-            bc2 = BoundaryCondition(u, ub, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.UPPER,),)
+            bc1 = BoundaryCondition(u, lb(), kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.LOWER,),)
+            bc2 = BoundaryCondition(u, ub(), kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.UPPER,),)
             eq1 = Equation(res_u, regions=(RegionEnum.OPEN_OPEN,))
             eq_list.append(bc1)
             eq_list.append(bc2)
             eq_list.append(eq1)
         elif lb is not None:
-            bc1 = BoundaryCondition(u, lb, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.LOWER,),)
+            bc1 = BoundaryCondition(u, lb(), kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.LOWER,),)
             eq1 = Equation(res_u, regions=(RegionEnum.OPEN_CLOSED,))
             eq_list.append(bc1)
             eq_list.append(eq1)
         elif ub is not None:
-            bc2 = BoundaryCondition(u, ub, kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.UPPER,),)
+            bc2 = BoundaryCondition(u, ub(), kind=BoundaryConditionEnum.DIRICHLET, regions_1=(RegionEnum.UPPER,),)
             eq1 = Equation(res_u, regions=(RegionEnum.CLOSED_OPEN,))
             eq_list.append(bc2)
             eq_list.append(eq1)

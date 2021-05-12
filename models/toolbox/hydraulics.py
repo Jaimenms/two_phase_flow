@@ -3,7 +3,7 @@ import numpy as np
 class Hydraulics:
 
     @staticmethod
-    def ff_via_churchil(Re, epw, D):
+    def ff_via_churchill(Re, epw, D):
         """
 
         :param Re: reynolds number

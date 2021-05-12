@@ -1,5 +1,5 @@
 import numpy as np
-
+from abc import ABC, abstractmethod
 from methods.fdm.operations.gradient import Gradient
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
 from models.model.domain import Domain
@@ -9,16 +9,16 @@ from models.model.model_plot_mixin import ModelPlotMixin
 from models.model.parameter import TimeDependentParameter, ConstantParameter
 from models.model.variable import RegionEnum
 from models.model.variable import Variable
-from models.toolbox.dimensionless import Dimensionless
 from models.toolbox.geometry import Geometry
 from models.toolbox.hydraulics import Hydraulics
-
+from models.two_phase_flow.closures.closure_enum import ClosureEnum
 
 class TwoPhaseFlow(Model, ModelPlotMixin):
 
     def __init__(
             self,
             x_domain: Domain,
+            closure: ClosureEnum = ClosureEnum.STRATIFIED,
             scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
             flux_delimiter=FluxDelimiterEnum.CUBISTA,
     ):
@@ -40,28 +40,27 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
         rhoG = ConstantParameter('rhoG', "kg/m**3")
         muG = ConstantParameter('muG', "Pa*s")
         drhoGdP = ConstantParameter('drhoGdP', "kg/m**3/Pa")
-        z = ConstantParameter('z', "m")
+        tetha = ConstantParameter('tetha', "")
         qL_lb = TimeDependentParameter('qL_lb', "kg/s")
         qG_lb = TimeDependentParameter('qG_lb', "kg/s")
         P_ub = TimeDependentParameter('P_ub', "Pa")
 
-        self.parameters = Parameters((D, epw, g, rhoL, muL, drhoLdP, rhoG, muG, drhoGdP, z, qL_lb, qG_lb, P_ub))
+        self.parameters = Parameters((D, epw, g, rhoL, muL, drhoLdP, rhoG, muG, drhoGdP, tetha, qL_lb, qG_lb, P_ub))
 
         # Operators
         self.grad_x_hrs = GradientHRS(self.domains["x"], axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
         self.grad_x = Gradient(self.domains["x"], axis=0, scheme=scheme)
 
+        self.model_closure = closure
+
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
         D = self.parameters['D']()
-        epw = self.parameters['epw']()
         rhoL = self.parameters['rhoL']()
-        muL = self.parameters['muL']()
         drhoLdP = self.parameters['drhoLdP']()
         rhoG = self.parameters['rhoG']()
-        muG = self.parameters['muG']()
         drhoGdP = self.parameters['drhoGdP']()
-        z = self.parameters['z']()
+        tetha = self.parameters['tetha']()
         g = self.parameters['g']()
 
         qL_lb = self.parameters['qL_lb'](t)
@@ -84,26 +83,16 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
         dalphaGdt = -dalphaLdt
 
         A = Geometry.area(D)
-        betha = Geometry.stratified_angle(alphaL)
-        perL, perG, perI = Geometry.stratified_perimeters(D, betha)
 
         vL = Hydraulics.velocity(qL, rhoL, alphaL*A)
         vG = Hydraulics.velocity(qG, rhoG, alphaG*A)
 
-        ReL = Dimensionless.reynolds(D, vL, rhoL, muL)
-        ReG = Dimensionless.reynolds(D, vG, rhoG, muG)
-
-        _, fDL = Hydraulics.ff_via_churchil(ReL, epw, D)
-        _, fDG = Hydraulics.ff_via_churchil(ReG, epw, D)
-
-        tauL = Hydraulics.shear_stress(fDL, rhoL, vL)
-        tauG = Hydraulics.shear_stress(fDG, rhoG, vG)
-        tauI = Hydraulics.shear_stress(fDG, rhoG, vG-vL)
+        gammaL, gammaG, gammaI, dPL, dPG, dPI = self.model_closure(self, t, qL, qG, alphaL, P)
 
         res_1 = rhoL*dalphaLdt + alphaL*drhoLdP*dPdt + 1/A * self.grad_x(qL)
         res_2 = rhoG*dalphaGdt + alphaG*drhoGdP*dPdt + 1/A * self.grad_x(qG)
-        res_3 = dqLdt + alphaL * A * self.grad_x(P) + self.grad_x_hrs(qL * vL, qL) + tauL*perL - tauI*perI + alphaL * rhoL * g * A * self.grad_x(z)
-        res_4 = dqGdt + alphaG * A * self.grad_x(P) + self.grad_x_hrs(qG * vG, qG) + tauG*perG + tauI*perI + alphaG * rhoG * g * A * self.grad_x(z)
+        res_3 = dqLdt + alphaL * A * self.grad_x(P) + dPL * A * self.grad_x(alphaL) + self.grad_x_hrs(qL * vL, qL) + gammaL - gammaI + alphaL * rhoL * g * A * np.sin(tetha)
+        res_4 = dqGdt + alphaG * A * self.grad_x(P) + dPG * A * self.grad_x(alphaG) + self.grad_x_hrs(qG * vG, qG) + gammaG + gammaI + alphaG * rhoG * g * A * np.sin(tetha)
 
         eq1 = Equation(res_1, regions=(RegionEnum.OPEN_CLOSED,))
         eq2 = Equation(res_2, regions=(RegionEnum.OPEN_CLOSED,))

@@ -69,7 +69,7 @@ class SinglePhaseFlow(Model, ModelPlotMixin):
 
         Re = Dimensionless.reynolds(D, v, rho, mu)
 
-        _, fD = Hydraulics.ff_via_churchil(Re, epw, D)
+        _, fD = Hydraulics.ff_via_churchill(Re, epw, D)
 
         tau = Hydraulics.shear_stress(fD, rho, v)
 

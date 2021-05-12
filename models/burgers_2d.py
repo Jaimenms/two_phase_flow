@@ -42,9 +42,9 @@ class Burgers2D(Model, ModelPlotMixin):
 
         u = self.variables["u"].parse(y)
         dudt = self.variables["u"].parse(yp)
-        visc = self.parameters['visc']()
+        visc = self.parameters['visc']
 
-        res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u) - visc*(self.grad2_x1(u) + self.grad2_x2(u))
+        res_u = dudt + 0.5*self.grad_x1(u**2, a=u) + 0.5*self.grad_x2(u**2, a=u) - visc()*(self.grad2_x1(u) + self.grad2_x2(u))
 
         eq1 = Equation(res_u, regions=(RegionEnum.OPEN_OPEN,RegionEnum.OPEN_OPEN,))
 
