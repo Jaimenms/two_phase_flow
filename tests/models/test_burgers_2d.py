@@ -10,6 +10,8 @@ class TestBurgers2D(TestCase):
 
     def test_1(self, plot = True):
 
+        # TODO - not working
+
         N = 10
         t = np.linspace(0, 0.5, 4)
         x1 = np.linspace(-1, 1., N)

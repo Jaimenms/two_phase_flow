@@ -10,6 +10,8 @@ class TestBurgers(TestCase):
 
     def test_1(self, plot=True):
 
+        # TODO - Does not converge for N > 200
+
         N = 100
         t = np.linspace(0, 0.5, 4)
         x = np.linspace(0, 1., N)
@@ -21,12 +23,16 @@ class TestBurgers(TestCase):
         )
 
         m.parameters["visc"].set(0.001, "m**2/s")
+        m.parameters["lb"].set(None, "m/s")
+        m.parameters["ub"].set(None, "m/s")
+        #m.jacobian = None
+
         m.variables["u"].set_ic(u0,"m/s")
         y0 = m.variables.get_ic_array()
 
         m.residue(t,y0,np.zeros_like(y0))
 
-        t, y, yp = DasslSolver.run(m, t, y0, display=True, rtol=1e-3, atol=1e-6)
+        t, y, yp = DasslSolver.run(m, t, y0, display=True, rtol=1e-6, atol=1e-6, user_jacobian=True)
 
         if plot:
             m.plot_result(t, y)
@@ -60,7 +66,7 @@ class TestBurgers(TestCase):
 
         y0 = m.variables.get_ic_array()
 
-        t, y, yp = DasslSolver.run(m, t, y0, display=True, rtol=1e-3, atol=1e-6)
+        t, y, yp = DasslSolver.run(m, t, y0, display=True, rtol=1e-3, atol=1e-6, user_jacobian=False)
 
         if plot:
             m.plot_result(t, y)

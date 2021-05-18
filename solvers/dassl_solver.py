@@ -20,11 +20,14 @@ class DasslSolver(Solver):
             index=None,
             configuration_file=None,
             display=False,
-            verbose=False
+            verbose=False,
+            user_jacobian=False
     ):
 
         if configuration_file is None:
-            if verbose:
+            if user_jacobian:
+                configuration_file = os.path.join(os.path.dirname(__file__), "dassl_user_jacobian.dat")
+            elif verbose:
                 configuration_file = os.path.join(os.path.dirname(__file__),"dassl_verbose.dat")
             else:
                 configuration_file = os.path.join(os.path.dirname(__file__),"dassl_default.dat")

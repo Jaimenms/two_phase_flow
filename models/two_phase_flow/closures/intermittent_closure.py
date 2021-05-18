@@ -7,6 +7,9 @@ from models.two_phase_flow.closures.stratified_closure import StratifiedClosure
 from models.two_phase_flow.closures.bubble_closure import BubbleClosure
 
 
+def sigmoidal(a,x1,x2):
+    return 1/(1+np.exp(-a*(x1-x2)))
+
 class IntermittentClosure:
 
     @staticmethod

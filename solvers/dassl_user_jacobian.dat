@@ -1,0 +1,3 @@
+option maxconvfail 50
+option mtype userdense
+option linearmode direct

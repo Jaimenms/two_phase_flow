@@ -38,36 +38,27 @@ class Geometry:
 
 
     @staticmethod
-    def stratified_angle(alphaL):
+    def stratified_angle(alphaL: np.ndarray):
+
+        original_shape = alphaL.shape
+        alphaL = alphaL.flatten()
 
         betha = Geometry.stratified_angle_approximate(alphaL)
 
-        if not isinstance(alphaL, np.ndarray):
-
+        for i, alphaLi in enumerate(alphaL):
             sol = root_scalar(
                 Geometry.stratified_angle_res,
-                x0=betha,
+                x0=betha[i],
                 fprime=Geometry.stratified_angle_fprime,
                 fprime2=Geometry.stratified_angle_fprime2,
-                bracket=[0, 2*np.pi],
+                bracket=[0, 2 * np.pi],
                 method='newton',
-                args=(alphaL,)
+                rtol=1e-10,
+                args=(alphaLi,)
             )
-            betha = sol.root
+            betha[i] = sol.root
 
-        else:
-            N = len(betha)
-            for i in range(N):
-                sol = root_scalar(
-                    Geometry.stratified_angle_res,
-                    x0=betha[i],
-                    fprime=Geometry.stratified_angle_fprime,
-                    fprime2=Geometry.stratified_angle_fprime2,
-                    bracket=[0, 2 * np.pi],
-                    method='newton',
-                    args=(alphaL[i],)
-                )
-                betha[i] = sol.root
+        betha = np.reshape(betha, original_shape)
 
         return betha
 

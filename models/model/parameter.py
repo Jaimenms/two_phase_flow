@@ -65,7 +65,10 @@ class ConstantParameter(Parameter):
         if self._unit != value_base_unit:
             raise ValueError("Sorry but the parameter unit is not consistent")
 
-        self._value = new_value * ureg(value_unit).to_base_units().magnitude
+        if new_value is None:
+            self._value = None
+        else:
+            self._value = new_value * ureg(value_unit).to_base_units().magnitude
 
     def __get__(self):
         return self._value

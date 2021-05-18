@@ -33,6 +33,7 @@ class Variable:
         self._unit = str(ureg(unit).to_base_units().units)
         self.shape = tuple([len(domain) for domain in domains])
         self.offset = 0
+        self.indices = []
 
         size = 1
         for ele in  self.shape:
@@ -41,6 +42,8 @@ class Variable:
 
     def register(self, offset):
         self.offset = offset
+        self.indices = np.array(list(range(offset, offset+self.size)), dtype="int64")
+
 
     @property
     def value(self):
@@ -57,9 +60,13 @@ class Variable:
         self._value = value * ureg(unit).to_base_units().magnitude
 
     def parse(self, y: np.ndarray) -> np.ndarray:
-        ini = self.offset
-        fini = ini + self.size
-        return np.reshape(y[ini:fini], newshape=self.shape)
+        yi = np.take(y, self.indices, axis=0)
+        if yi.ndim == 1:
+            shape = self.shape
+        else:
+            shape = (*self.shape, *yi.shape[1:])
+        return np.reshape(yi, newshape=shape)
+
 
     def __call__(self) -> np.ndarray:
         return self._value
@@ -72,7 +79,7 @@ class Variables:
         self._offset = 0
         _variables = {}
         for variable in variables:
-            variable.offset = self._offset
+            variable.register(self._offset)
             self._offset += variable.size
             _variables[variable.name] = variable
 

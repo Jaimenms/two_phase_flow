@@ -2,12 +2,12 @@ import numpy as np
 
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
 from methods.fdm.operations.second_gradient import SecondGradient, SchemeM2FDMEnum
-from models.model.domain import Domain
+from models.model.domain import Domain, Domains
 from models.model.equation import Equation, Equations, BoundaryConditionEnum, BoundaryCondition
-from models.model.model import Model, Domains, Variables, Parameters
+from models.model.model import Model
 from models.model.model_plot_mixin import ModelPlotMixin
-from models.model.parameter import ConstantParameter
-from models.model.variable import RegionEnum, Variable
+from models.model.parameter import ConstantParameter, Parameters
+from models.model.variable import RegionEnum, Variable, Variables
 
 
 class Burgers2D(Model, ModelPlotMixin):
@@ -60,3 +60,12 @@ class Burgers2D(Model, ModelPlotMixin):
         ires = 0
 
         return res, ires
+
+
+    def numerical_jacobian_yprime_block(self, t, y, yp, par):
+        if self.jac_y_prime is None:
+            self.jac_y_prime = super().numerical_jacobian_yprime_block(t, y, yp, par)
+        return self.jac_y_prime
+
+    def jacobian(self, t, y, yp, cj, par):
+        return self.numerical_jacobian(t, y, yp, cj, par)

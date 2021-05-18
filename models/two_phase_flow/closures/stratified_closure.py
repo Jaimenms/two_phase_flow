@@ -23,6 +23,7 @@ class StratifiedClosure:
 
         A = Geometry.area(D)
         betha = Geometry.stratified_angle(alphaL)
+        #betha = 2 * np.pi * alphaL
         hD = 0.5 * (1 - np.cos(0.5 * betha))
         perL, perG, perI = Geometry.stratified_perimeters(D, betha)
 
@@ -44,6 +45,9 @@ class StratifiedClosure:
 
         zcml = D * (0.5 - 1 / 3 / np.pi / alphaL * np.sin(betha / 2) ** 3)
         zcmg = D * (0.5 + 1 / 3 / np.pi / alphaG * np.sin(betha / 2) ** 3)
+
+        if qL.ndim == 2:
+            tetha = np.repeat(np.array([tetha]), qL.shape[1], axis=0).T
 
         dPLG = ((rhoL - rhoG) * hD * D - rhoL * zcml + rhoG * zcmg) * g * np.cos(tetha)
         dPL = alphaG * dPLG
