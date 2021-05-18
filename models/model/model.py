@@ -14,6 +14,10 @@ class Model(ABC):
 
     jacobian = None
 
+    def __init__(self):
+        self.jac_y_prime = None
+
+
     def __call__(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 
         return self.residue(t, y, yp, par)
@@ -46,30 +50,22 @@ class Model(ABC):
     def numerical_jacobian_y_block_vectorized(self, t, y, yp, par):
         n = len(y)
 
-        Y1 = []
-        Y2 = []
-        YP = []
-
+        Y = []
         DEN = []
         for i in range(n):
-            y1 = 1*y
+            y1 = np.copy(y)
+            y2 = np.copy(y)
             y1[i] = y[i] + 1e-6*np.abs(y[i]) + 1e-9
-            Y1.append(y1)
-            y2 = 1*y
             y2[i] = y[i] - 1e-6*np.abs(y[i]) - 1e-9
-            Y2.append(y2)
-            YP.append(yp)
+            Y.append(y1)
+            Y.append(y2)
             DEN.append((y1[i]-y2[i])*np.ones_like(y1))
 
-        Y1 = np.vstack(Y1).T
-        Y2 = np.vstack(Y2).T
-        YP = np.vstack(YP).T
+        Y = np.vstack(Y).T
+        YP = np.tile(yp,(2*n,1)).T
         DEN  = np.vstack(DEN).T
-
-        res1, _ = self.residue(t=t, y=Y1, yp=YP, par=par)
-        res2, _ = self.residue(t=t, y=Y2, yp=YP, par=par)
-
-        NUM =np.reshape(res1 - res2,(n,n))
+        RES, _ = self.residue(t=t, y=Y, yp=YP, par=par)
+        NUM =np.reshape(RES[0::2] - RES[1::2],(n,n))
         out = NUM/DEN
         return out.T
 

@@ -2,12 +2,12 @@ import numpy as np
 
 from methods.fdm.operations.gradient import Gradient
 from methods.fdm.operations.gradient_hrs import GradientHRS, SchemeM1FDMEnum, FluxDelimiterEnum
-from models.model.domain import Domain
+from models.model.domain import Domain, Domains
 from models.model.equation import Equation, Equations, BoundaryConditionEnum, BoundaryCondition
-from models.model.model import Model, Domains, Variables
+from models.model.model import Model
 from models.model.model_plot_mixin import ModelPlotMixin
 from models.model.parameter import Parameters, ConstantParameter, TimeDependentParameter
-from models.model.variable import RegionEnum, Variable
+from models.model.variable import RegionEnum, Variable, Variables
 from models.toolbox.dimensionless import Dimensionless
 from models.toolbox.geometry import Geometry
 from models.toolbox.hydraulics import Hydraulics

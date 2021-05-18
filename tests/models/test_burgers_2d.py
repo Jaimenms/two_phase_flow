@@ -4,15 +4,14 @@ import numpy as np
 from methods.fdm.flux_delimiters.flux_delimiter_enum import FluxDelimiterEnum
 from models.model.domain import Domain
 from solvers.dassl_solver import DasslSolver
+from methods.fdm.schemes.scheme_m1_fdm_enum import SchemeM1FDMEnum
 
 
 class TestBurgers2D(TestCase):
 
     def test_1(self, plot = True):
 
-        # TODO - not working
-
-        N = 10
+        N = 20
         t = np.linspace(0, 0.5, 4)
         x1 = np.linspace(-1, 1., N)
         x2 = np.linspace(-1, 1., N)
@@ -23,7 +22,8 @@ class TestBurgers2D(TestCase):
         m = Burgers2D(
             x1_domain=x1_domain,
             x2_domain=x2_domain,
-            flux_delimiter=FluxDelimiterEnum.SMART
+            flux_delimiter=FluxDelimiterEnum.SMART2,
+            scheme=SchemeM1FDMEnum.CENTRAL_N2, scheme_hrs=SchemeM1FDMEnum.CENTRAL_N6,
         )
 
         m.parameters["visc"].set(0.001, "m**2/s")
@@ -35,7 +35,7 @@ class TestBurgers2D(TestCase):
 
         y0 = m.variables.get_ic_array()
 
-        t, y, yp = DasslSolver.run(m, t, y0, display=True, rtol=1e-3, atol=1e-6)
+        t, y, yp = DasslSolver.run(m, t, y0, display=True, rtol=1e-3, atol=1e-6, user_jacobian=True)
 
         if plot:
             m.plot_result(t, y)

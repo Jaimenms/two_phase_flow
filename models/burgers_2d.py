@@ -17,9 +17,11 @@ class Burgers2D(Model, ModelPlotMixin):
             x1_domain: Domain,
             x2_domain: Domain,
             scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N4,
+            scheme_hrs: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N4,
             scheme_second: SchemeM2FDMEnum = SchemeM2FDMEnum.CENTRAL_N4,
             flux_delimiter: FluxDelimiterEnum = FluxDelimiterEnum.CUBISTA2
         ):
+        super().__init__()
 
         self.domains = Domains((x1_domain, x2_domain))
 
@@ -32,11 +34,10 @@ class Burgers2D(Model, ModelPlotMixin):
         self.parameters = Parameters((visc, lb, ub))
 
         # Operators
-        self.grad_x1 = GradientHRS(self.domains["x1"], axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
-        self.grad_x2 = GradientHRS(self.domains["x2"], axis=1, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x1 = GradientHRS(self.domains["x1"], axis=0, scheme=scheme_hrs, flux_delimiter=flux_delimiter)
+        self.grad_x2 = GradientHRS(self.domains["x2"], axis=1, scheme=scheme_hrs, flux_delimiter=flux_delimiter)
         self.grad2_x1 = SecondGradient(self.domains["x1"], axis=0, scheme=scheme_second,)
         self.grad2_x2 = SecondGradient(self.domains["x2"], axis=1, scheme=scheme_second,)
-
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
 

@@ -18,13 +18,13 @@ class ShallowWater(Model, ModelPlotMixin):
                  scheme_hrs: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2,
                  flux_delimiter=FluxDelimiterEnum.CUBISTA2,
                  ):
+        super().__init__()
 
         v = Variable("v", domains=(x_domain,), unit="m/s")
         h = Variable("h", domains=(x_domain,), unit="m")
         self.variables = Variables((v,h))
         self.parameters = Parameters()
         self.domains = Domains((x_domain,))
-        self.jac_y_prime = None
 
         # Operators
         self.grad_hrs_x = GradientHRS(self.domains["x"], axis=0, scheme=scheme_hrs, flux_delimiter=flux_delimiter)

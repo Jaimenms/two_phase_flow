@@ -1,3 +1,4 @@
-option maxconvfail 50
 option mtype userdense
 option linearmode direct
+option savefile solver.save
+# End

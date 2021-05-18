@@ -48,7 +48,7 @@ class TestShallowWater(TestCase):
         hL = 0.75
         hR = 0.25
         xi = 0.5
-        N = 200
+        N = 100
         t = np.linspace(0, 0.1, 4)
 
         x = np.linspace(0, 1., N)
@@ -56,8 +56,8 @@ class TestShallowWater(TestCase):
 
         m = ShallowWater(
             x_domain=x_domain,
-            scheme=SchemeM1FDMEnum.CENTRAL_N4, scheme_hrs=SchemeM1FDMEnum.CENTRAL_N4,
-            flux_delimiter=FluxDelimiterEnum.MINMOD2
+            scheme=SchemeM1FDMEnum.CENTRAL_N2, scheme_hrs=SchemeM1FDMEnum.CENTRAL_N6,
+            flux_delimiter=FluxDelimiterEnum.SMART2
         )
 
         v0 = np.zeros(N)

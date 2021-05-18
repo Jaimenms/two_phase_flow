@@ -23,7 +23,7 @@ class TestSinglePhaseFlow(TestCase):
 
         m = SinglePhaseFlow(
             x_domain=x_domain,
-            flux_delimiter=FluxDelimiterEnum.SMART,
+            flux_delimiter=FluxDelimiterEnum.SMART2,
         )
 
         m.parameters["D"].set(4, "in")

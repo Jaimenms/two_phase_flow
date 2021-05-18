@@ -1,5 +1,5 @@
 option maxlen 3000
 option maxorder 5
 option maxconvfail 50
-print
 option mtype userdense
+# endfile

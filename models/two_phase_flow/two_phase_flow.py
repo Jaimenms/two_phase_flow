@@ -18,9 +18,11 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
             self,
             x_domain: Domain,
             closure: ClosureEnum = ClosureEnum.STRATIFIED,
-            scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
+            scheme: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N2,
+            scheme_hrs: SchemeM1FDMEnum = SchemeM1FDMEnum.CENTRAL_N6,
             flux_delimiter=FluxDelimiterEnum.CUBISTA,
     ):
+        super().__init__()
 
         self.domains = Domains((x_domain,))
 
@@ -48,11 +50,10 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
         self.parameters = Parameters((D, epw, g, Pr, rhoL, muL, drhoLdP, rhoG, muG, drhoGdP, tetha, qL_lb, qG_lb, P_ub))
 
         # Operators
-        self.grad_x_hrs = GradientHRS(self.domains["x"], axis=0, scheme=scheme, flux_delimiter=flux_delimiter)
+        self.grad_x_hrs = GradientHRS(self.domains["x"], axis=0, scheme=scheme_hrs, flux_delimiter=flux_delimiter)
         self.grad_x = Gradient(self.domains["x"], axis=0, scheme=scheme)
 
         self.model_closure = closure
-        self.jac_y_prime = None
 
 
     def residue(self, t: float, y: np.ndarray, yp: np.ndarray, par=None):
@@ -104,8 +105,6 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
 
         gammaL, gammaG, gammaI, dPL, dPG, dPI = self.model_closure(self, t, qL, qG, alphaL, P)
 
-        aux = self.grad_x(P)
-
         dqLdx = self.grad_x(qL)
         dqGdx = self.grad_x(qG)
 
@@ -113,8 +112,8 @@ class TwoPhaseFlow(Model, ModelPlotMixin):
         res_1 = dPdt + (dqLdx/rhoL + dqGdx/rhoG)/A/cM
         res_2 = dalphaLdt + (1 - 1/cM*alphaL/rhoL*drhoLdP)/A/rhoL*dqLdx - 1/A/rhoG/cM * alphaL/rhoL*drhoLdP*dqGdx
 
-        res_3 = dqLdt + A * (dPL - rhoL*vL**2) * self.grad_x(alphaL) + A * alphaL*(1 - drhoLdP * vL**2) * self.grad_x(P + dPL) + 2*vL * self.grad_x_hrs(qL, qL) + gammaL - gammaI + alphaL * rhoL * g * A * np.sin(tetha)
-        res_4 = dqGdt + A * (dPG - rhoG*vG**2) * self.grad_x(alphaG) + A * alphaG*(1 - drhoGdP * vG**2) * self.grad_x(P + dPG) + 2*vG * self.grad_x_hrs(qG, qG) + gammaG + gammaI + alphaG * rhoG * g * A * np.sin(tetha)
+        res_3 = dqLdt + A * (dPL - rhoL*vL**2) * self.grad_x(alphaL) + A * alphaL*(1 - drhoLdP * vL**2) * self.grad_x(P) + A * alphaL * self.grad_x(dPL) + 2*vL * self.grad_x_hrs(qL, qL) + gammaL - gammaI + alphaL * rhoL * g * A * np.sin(tetha)
+        res_4 = dqGdt + A * (dPG - rhoG*vG**2) * self.grad_x(alphaG) + A * alphaG*(1 - drhoGdP * vG**2) * self.grad_x(P) + A * alphaG * self.grad_x(dPG) + 2*vG * self.grad_x_hrs(qG, qG) + gammaG + gammaI + alphaG * rhoG * g * A * np.sin(tetha)
         #res_3 = dqLdt + A * alphaL*(1 - drhoLdP * vL**2) * self.grad_x(P + dPL) + 2*vL * self.grad_x_hrs(qL, qL) + gammaL - gammaI + alphaL * rhoL * g * A * np.sin(tetha)
         #res_4 = dqGdt + A * alphaG*(1 - drhoGdP * vG**2) * self.grad_x(P + dPG) + 2*vG * self.grad_x_hrs(qG, qG) + gammaG + gammaI + alphaG * rhoG * g * A * np.sin(tetha)
 
